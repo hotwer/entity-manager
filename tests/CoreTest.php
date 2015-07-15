@@ -261,5 +261,10 @@
 			});
 		}
 
+		public function testNotLazyEagerJoin()
+		{
+			$this->maskTestIncomplete();
+		}
+
 
 	}

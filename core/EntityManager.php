@@ -148,6 +148,17 @@
 			return Collection::from_array($instances);
 		}
 
+
+		public function with() 
+		{
+
+		}
+
+		public function create($values, $connection = null)
+		{
+			return new static(array('connection' => $connection))->update($values);
+		}
+
 		public function update($values)
 		{
 			$fields = array_keys($this->untouched);
@@ -155,6 +166,7 @@
 				if (in_array($field, $fields, true))
 					$this->$field = $value;
 			$this->save();
+			return $this;
 		}
 
 		public function assert($model, $ids)
