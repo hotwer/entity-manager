@@ -227,3 +227,29 @@ sphere_to_circle:
     sphere_to_circle_id: 5
     sphere_id: 2
     circle_id: 3
+
+my_custom_table:
+  -
+    custom_id: 1
+    field: uber_default_value
+  -
+    custom_id: 2
+    field: some value for test
+
+table_with_composite_key:
+  - 
+    first_key: 1
+    second_key: 1
+    field: value_default_uber
+  -
+    first_key: 1
+    second_key: 2
+    field: some other value
+  -
+    first_key: 2
+    second_key: 1
+    field: uray
+  -
+    first_key: 2
+    second_key: 2
+    field: some fine values here

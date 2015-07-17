@@ -4,44 +4,65 @@
 	class EntityManager {
 		protected $connection;
 		protected $class_name;
+
 		protected $table;
+		protected $primary_key;
+		protected $is_primary_key_composite;
 		protected $table_description;
+		protected $guardad_fields;
 
 		private $_id;
 		private $untouched;
-		//private $untouched_raw;
+
+		public $built;
 
 		public function __construct($options = array()) {
 			
 			$this->_id = null;
 			$this->class_name = get_class($this);
-			$this->table = self::get_tablename_from_class($this->class_name);
-			$this->guarded = array();
-			$this->untouched = array();
-			//$this->untouched_raw = array();
+			
+			if (!isset($this->table))
+				$this->table = self::get_tablename_from_class($this->class_name);
 
-			if (isset($options['table_description']) && !is_null($options['table_description']))
-				$this->table_description = $options['table_description'];
-			else
-				$this->table_description = null;
-
-			if (!isset($options['find_action']) || is_null($options['find_action']))
-			{
-				$options['find_action'] = null;
-				$options['find_value'] = null; 
-			}
-
-			try {
-				if (!isset($options['connection']) || is_null($options['connection']))
-					$this->connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
-						DB_USERNAME, DB_PASSWORD
-					);
+			if (!isset($this->primary_key))
+				$this->primary_key = $this->table.'_id';
+			else {
+				if (is_array($this->primary_key))
+					$this->is_primary_key_composite = true;
 				else
-					$this->connection = $options['connection'];
+					$this->is_primary_key_composite = false;
+			} 
 
-				$this->load_fields($options['find_action'], $options['find_value']);
-			} catch (PDOException $e) {
-				throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
+
+			$this->guarded_fields = array();
+			$this->untouched = array();
+			$this->built = true;
+
+			if (!isset($options['connection']) || $options['connection'] !== false) {
+				
+				if (isset($options['table_description']) && !is_null($options['table_description']))
+					$this->table_description = $options['table_description'];
+				else
+					$this->table_description = null;
+
+				if (!isset($options['find_action']) || is_null($options['find_action']))
+				{
+					$options['find_action'] = null;
+					$options['find_value'] = null; 
+				}
+
+				try {
+					if (!isset($options['connection']) || is_null($options['connection']))
+						$this->connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
+							DB_USERNAME, DB_PASSWORD
+						);
+					else
+						$this->connection = $options['connection'];
+
+					$this->built = $this->load_fields($options['find_action'], $options['find_value']);
+				} catch (PDOException $e) {
+					throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
+				}
 			}
 		}
 
@@ -110,7 +131,22 @@
 			return Collection::from_array($instances);
 		}
 
-		public static function where_with(array $conditions, $with, $connection = null)
+		public static function all_with()
+		{
+			throw new BadMethodCallException('Not yet implemented.');
+		}
+
+		public static function find_by_id_with() 
+		{
+			throw new BadMethodCallException('Not yet implemented.');
+		}
+
+		public static function where_with()
+		{
+			throw new BadMethodCallException('Not yet implemented.');
+		}
+
+		public static function _concatenate_relation(array $conditions, $with, $connection = null)
 		{
 			if (is_null($connection))
 				try {
@@ -120,7 +156,6 @@
 				} catch (PDOException $e) {
 					throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
 				}
-			
 			
 			$instances = array();
 			$table_fields = array();
@@ -149,14 +184,10 @@
 		}
 
 
-		public function with() 
+		public static function create($values, $connection = null)
 		{
-
-		}
-
-		public function create($values, $connection = null)
-		{
-			return new static(array('connection' => $connection))->update($values);
+			$entity_manager = new static(array('connection' => $connection));
+			return $entity_manager->update($values);
 		}
 
 		public function update($values)
@@ -174,14 +205,19 @@
 			$table_relationed = self::get_tablename_from_class($model);
 			$pivot_table = $this->table.'_to_'.$table_relationed;
 
+			if ($this->is_primary_key_composite)
+				$primary_key_array = $this->_id;
+			else
+				$primary_key_array = array($this->primary_key => $this->_id);
+
 			$this->_delete(array(
 				'table' => $pivot_table,
-				'where' => array($this->table.'_id' => $this->_id ),
+				'where' => $primary_key_array,
 			));
 
 			$data = array();
 			foreach ($ids as $id)
-				array_push($data, array($this->table.'_id' => $this->_id, $table_relationed.'_id' => $id));
+				array_push($data, array_merge($primary_key_array, array($table_relationed.'_id' => $id)));
 
 			$this->_insert($data, array(
 				'table' => $pivot_table,
@@ -250,13 +286,21 @@
 				} else
 					$statement->execute(array_combine($namevalues[0], $data));
 
-				$this->_id = $this->connection->lastInsertId();
+				if (!$is_multi_insert) {
+					if ($this->is_primary_key_composite) { 
+						foreach($this->primary_key as $field)
+							$this->_id[$field] = $data[$field];
+					}
+					else
+						$this->_id = $this->connection->lastInsertId();
+				}
 				
 			} catch (PDOException $e) {
 				throw new ErrorException('Failed to perform insertion query (table:'.$table.') > ' . $e->getMessage());
 			}
 
-			$this->id = $this->_id;
+			if (!$is_multi_insert)
+				$this->id = $this->_id;
 		}
 
 		public function save() 
@@ -264,20 +308,18 @@
 			$response = false;
 			if (is_null($this->_id)) {
 				$attributes = array();
-				$guarded_fields = $this->guarded_fields();
-				$not_test_guarded_fields = sizeof($guarded_fields) === 0;
+				$not_test_guarded_fields = sizeof($this->guarded_fields) === 0;
 				foreach (array_keys($this->untouched) as $field)
-					if ($not_test_guarded_fields || !in_array($field, $guarded_fields, true))
+					if ($not_test_guarded_fields || !in_array($field, $this->guarded_fields, true))
 						$attributes[$field] = $this->$field;
 				$response = $this->_insert($attributes);
 
 			} else {
 				$dirty_fields = array();
-				$guarded_fields = $this->guarded_fields();
-				$not_test_guarded_fields = sizeof($guarded_fields) === 0;
+				$not_test_guarded_fields = sizeof($this->guarded_fields) === 0;
 				foreach($this->untouched as $field => $value)
 					if ($this->$field !== $value && 
-						($not_test_guarded_fields || !in_array($field, $guarded_fields, true))
+						($not_test_guarded_fields || !in_array($field, $this->guarded_fields, true))
 					)
 						$dirty_fields[$field] = $this->$field;
 
@@ -318,7 +360,10 @@
 				$query = rtrim($query, ',');
 
 				if (!isset($options['where']))
-					$options['where'] = array($table.'_id' => $this->_id);
+					if ($this->is_primary_key_composite)
+						$options['where'] = $this->_id;
+					else
+						$options['where'] = array($this->primary_key => $this->_id);
 
 				$where = $this->get_where_query_piece($options['where']);
 				$params = array_merge($params, $where['params']);
@@ -329,7 +374,7 @@
 					$statement->execute($params);
 					return $statement->rowCount();
 				} catch (PDOException $e) {
-					throw new ErrorException('Failed to perform update query (table:'.$table.')');
+					throw new ErrorException('Failed to perform update query (table:'.$table.') > ' . $e->getMessage());
 				} 
 			}
 		}
@@ -411,13 +456,15 @@
 
 			try {
 				$statement = $this->connection->prepare($query);
-				if (isset($options['where']))
+
+				if (isset($options['where'])) {
 					$statement->execute($params);
+				}	
 				else
 					$statement->execute();
 				return $statement->fetchAll(PDO::FETCH_ASSOC);
 			}	catch (PDOException $e) {
-				throw new ErrorException('Failed to perform select query (table:'.$table.') >' . $e->getMessage());
+				throw new ErrorException('Failed to perform select query (table:'.$table.') > ' . $e->getMessage());
 			}
 
 		}
@@ -448,7 +495,7 @@
 				$statement->execute($params);
 				return $statement->rowCount();
 			} catch (PDOException $e) {
-				throw new ErrorException('Failed to perform deletion query >' . $e->getMessage());
+				throw new ErrorException('Failed to perform deletion query > ' . $e->getMessage());
 			}	
 
 		}
@@ -498,6 +545,7 @@
 
 		private function get_where_query_piece($where)
 		{
+
 			$query = ' WHERE ';
 			$params = array();
 			if (sizeof($where) === 1)  {
@@ -512,28 +560,30 @@
 					$params[':__WHERE__'.$field] = $value;
 				}
 			} else {
-				$index = 0;
 				$first = true;
-				foreach ($where as $condition => $field_and_value) {						
+				foreach ($where as $index => $clause) {						
 					if ($first) {
-						if (is_array($field_and_value)) {
-							$first = false;
-							$query .= $condition.' '.key($field_and_value).' :__WHERE__'.$index.'_'.$condition;
-							$params[':__WHERE__'.$index++.'_'.$condition] = reset($field_and_value);
+						$first = false;
+						$field = key($clause);
+						$value = reset($clause);
+						if (is_array($value)) {					
+							$query .= $field.' '.key($value).' :__WHERE__'.$index.'_'.$field;
+							$params[':__WHERE__'.$index.'_'.$field] = reset($value);
 						} else {
-							$first = false;
-							$query .= $condition.'= :__WHERE__'.$index.'_'.$condition;
-							$params[':__WHERE__'.$index++.'_'.$condition] = $field_and_value;
+							$query .= $field.'= :__WHERE__'.$index.'_'.$field;
+							$params[':__WHERE__'.$index.'_'.$field] = $value;
 						}
 					} else {
+						$condition = key($clause);
+						$field_and_value = reset($clause);
 						$field = key($field_and_value);
 						$value = reset($field_and_value); 
 						if (is_array($value)) {
-							$query .= ' '.$condition.' '.$field.' '.key($value).':'.$index.'_'.$field;
-							$params[':'.$index++.'_'.$field] = reset($value);
+							$query .= ' '.$condition.' '.$field.' '.key($value).':__WHERE__'.$index.'_'.$field;
+							$params[':__WHERE__'.$index.'_'.$field] = reset($value);
 						} else {
-							$query .= ' '.$condition.' '.$field.'= :'.$index.'_'.$field;
-							$params[':'.$index++.'_'.$field] = $value;
+							$query .= ' '.$condition.' '.$field.'= :__WHERE__'.$index.'_'.$field;
+							$params[':__WHERE__'.$index.'_'.$field] = $value;
 						}
 					}
 				}
@@ -545,7 +595,19 @@
 
 			if (!is_null($find_action)) {
 				if ($find_action === 'find_by_id') {
-					$row = $this->_select(array('where' => array($this->table.'_id' => $value), 'limit' => 1));
+					if ($this->is_primary_key_composite) {
+						$first = true;
+						$primary_key_array = array();
+						foreach($value as $key => $id)
+							if ($first) {
+								$first = false;
+								array_push($primary_key_array, array($key => $id));
+							} else
+								array_push($primary_key_array, array('AND' => array($key => $id)));
+					} else
+						$primary_key_array = array($this->primary_key => $value);
+
+					$row = $this->_select(array('where' => $primary_key_array, 'limit' => 1));
 					if (sizeof($row) > 0) 
 						$row = $row[0];
 					else
@@ -557,12 +619,18 @@
 
 			foreach($this->describe_table() as $description) {
 				if ($description['Key'] === 'PRI') {
-					$id = !is_null($find_action) ? intval($row[$description['Field']]) : null; 
-					$this->id = $id; 
-					$this->_id = $id;
+					$id = !is_null($find_action) ? intval($row[$description['Field']]) : null;
+					if ($this->is_primary_key_composite) {
+						if (!isset($this->id))
+							$this->id = array();
+						$this->id[$description['Field']] = $id; 
+						$this->_id[$description['Field']] = $id;
+					} else {	
+						$this->id = $id; 
+						$this->_id = $id;
+					}
 				} else {
 					$value = $this->parse_type(preg_replace('/\([^)]*\)/', '', $description['Type']), !is_null($find_action) ? $row[$description['Field']] : $description['Default']);
-					//$this->untouched_raw[$description['Field']] = !is_null($find_action) ? $row[$description['Field']] : $description['Default'];
 					$this->untouched[$description['Field']] = $value;
 					$this->{$description['Field']} = $value;
 				}
@@ -613,74 +681,74 @@
 			return $parsed_value;
 		}
 
-		protected function guarded_fields()
-		{
-			return array();
-		}
-
 		protected function table()
 		{
 			return $this->table;
 		}
 
-		protected function has_one($model, $field_id = null)
+		public static function get_tablename()
+		{
+			$entity = new static(array('connection' => false));
+			return $entity->table();
+		}
+
+		protected function has_one($model, $primary_key = null)
 		{
 			if (!is_string($model))
 				throw new ErrorException('$model argument must be a string');
 
-			if (!is_string($field_id))
-				$field_id = $this->table.'_id';
+			if (!is_string($primary_key) || !empty($primary_key))
+				$primary_key = $this->primary_key;
 
-			$model_table = self::get_tablename_from_class($model);
-			$this->$model_table = call_user_func_array($model.'::where', array(array($field_id => $this->_id), $this->connection))->first();
+			$model_table = call_user_func($model.'::get_tablename');
+			$this->$model_table = call_user_func_array($model.'::where', array(array($primary_key => $this->_id), $this->connection))->first();
 			return $this;		
 		} 
 
-		protected function belongs_to($model, $field_id = null)
+		protected function belongs_to($model, $primary_key = null)
 		{
 			if (!is_string($model))
 				throw new ErrorException('$model argument must be a string');
 
-			if (!is_string($field_id))
-				$field_id = $this->table.'_id';
+			if (!is_string($primary_key) || !empty($primary_key))
+				$primary_key = $this->primary_key;
 			
-			$model_table = self::get_tablename_from_class($model);
-			$this->$model_table = call_user_func_array($model.'::where_with', array(array($field_id => $this->_id), array($this->table), $this->connection))->first();
+			$model_table = call_user_func($model.'::get_tablename');
+			$this->$model_table = call_user_func_array($model.'::_concatenate_relation', array(array($primary_key => $this->_id), array($this->table), $this->connection))->first();
 			return $this;
 		}
 
-		protected function has_many($model, $field_id = null)
+		protected function has_many($model, $primary_key = null)
 		{
 			if (!is_string($model))
 				throw new ErrorException('$model argument must be a string');
 
-			if (!is_string($field_id))
-				$field_id = $this->table.'_id';
+			if (!is_string($primary_key) || !empty($primary_key))
+				$primary_key = $this->primary_key;
 
-			$model_table = self::get_tablename_from_class($model);
+			$model_table = call_user_func($model.'::get_tablename');
 
-			if (property_exists(new $model, $field_id))
-				$this->$model_table = call_user_func_array($model.'::where', array(array($field_id => $this->_id), $this->connection));
+			if (property_exists(new $model, $primary_key))
+				$this->$model_table = call_user_func_array($model.'::where', array(array($primary_key => $this->_id), $this->connection));
 			else
-				$this->$model_table = call_user_func_array($model.'::where_with', array(array($field_id => $this->_id), array($this->table.'_to_'.$model_table), $this->connection));
+				$this->$model_table = call_user_func_array($model.'::_concatenate_relation', array(array($primary_key => $this->_id), array($this->table.'_to_'.$model_table), $this->connection));
 			
 			return $this;		
 		}
 
-		protected function belongs_to_many($model, $field_id = null)
+		protected function belongs_to_many($model, $primary_key = null)
 		{
 			if (!is_string($model))
 				throw new ErrorException('$model argument must be a string');
 
-			if (!is_string($field_id))
-				$field_id = $this->table.'_id';
+			if (!is_string($primary_key) || !empty($primary_key))
+				$primary_key = $this->primary_key;
 			
-			$model_table = self::get_tablename_from_class($model);
-
-			if (property_exists($this, $field_id))
-				$this->$model_table = call_user_func_array($model.'::where_with', array(array($field_id => $this->_id), array($this->table), $this->connection));
+			$model_table = call_user_func($model.'::get_tablename');;
+			if (property_exists($this, $primary_key))
+				$this->$model_table = call_user_func_array($model.'::_concatenate_relation', array(array($primary_key => $this->_id), array($this->table), $this->connection));
 			else
-				$this->$model_table = call_user_func_array($model.'::where_with', array(array($field_id => $this->_id), array($model_table.'_to_'.$this->table), $this->connection));
+				$this->$model_table = call_user_func_array($model.'::_concatenate_relation', array(array($primary_key => $this->_id), array($model_table.'_to_'.$this->table), $this->connection));
 
 			return $this;
 		}

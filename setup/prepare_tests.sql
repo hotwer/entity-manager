@@ -80,4 +80,20 @@ CREATE TABLE `sphere_to_circle` (
 	PRIMARY KEY (`sphere_to_circle_id`)
 ) ENGINE=InnoDB COLLATE="utf8_general_ci";
 
+DROP TABLE IF EXISTS `my_custom_table`;
+CREATE TABLE `my_custom_table` (
+	`custom_id` INT(11) NOT NULL AUTO_INCREMENT,
+	`field` VARCHAR(127) DEFAULT "uber_default_value",
+	PRIMARY KEY (`custom_id`)
+) ENGINE=InnoDB COLLATE="utf8_general_ci";
+
+DROP TABLE IF EXISTS `table_with_composite_key`;
+CREATE TABLE `table_with_composite_key` (
+	`first_key` INT(11) NOT NULL,
+	`second_key` INT(11) NOT NULL,
+	`field` VARCHAR(127) DEFAULT "value_default_uber",
+	PRIMARY KEY (`first_key`, `second_key`)
+) ENGINE=InnoDB COLLATE="utf8_general_ci";
+
+
  --
