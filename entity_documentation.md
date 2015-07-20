@@ -191,7 +191,7 @@ $has_many_entity = HasManyTableName::find_by_id(11)->belongs_many_table_names();
 
 print $has_many_entity->belongs_to_many_table_name->index(0)->field_after_pivot_table;
 
-//to save any ids you want to relate, it's easy as well
+//to save any ids you want to relate, its easy as well
 $has_many_entity->assert(array(1, 2, 3, 4));
 
 //or if its has a composite primary key
@@ -230,7 +230,7 @@ $entity = MyEntity::find_by_id(2, $connection);
 $entity = MyEntity::where(array('field' => array('LIKE' => 'value%')), $connection);
 $entity = MyEntity::create(array('field' => 'new inserted value'), $connection);
 
-//you can also, if you're not going to need any connection you can pass false as well 
+//you can also, if you are not going to need any connection you can pass false as well 
 //(like getting the table name, primary key(s) or w/e)
 $entity = new MyEntity(array('connection' => false))
 ```
