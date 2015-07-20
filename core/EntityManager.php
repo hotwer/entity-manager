@@ -192,18 +192,16 @@
 
 		public function update($values)
 		{
-			$fields = array_keys($this->untouched);
 			foreach($values as $field => $value)
-				if (in_array($field, $fields, true))
-					$this->$field = $value;
+				$this->$field = $value;
 			$this->save();
 			return $this;
 		}
 
 		public function assert($model, $ids)
 		{
-			$table_relationed = self::get_tablename_from_class($model);
-			$pivot_table = $this->table.'_to_'.$table_relationed;
+			$table_relationed = new $model(array('connection' => false));
+			$pivot_table = $this->table.'_to_'.$table_relationed->table();
 
 			if ($this->is_primary_key_composite)
 				$primary_key_array = $this->_id;
@@ -216,8 +214,13 @@
 			));
 
 			$data = array();
-			foreach ($ids as $id)
-				array_push($data, array_merge($primary_key_array, array($table_relationed.'_id' => $id)));
+
+			if (!$table_relationed->has_composite_primary_key())
+				foreach ($ids as $id)
+					array_push($data, array_merge($primary_key_array, array($table_relationed->primary_key => $id)));
+			else
+				foreach ($ids as $id)
+					array_push($data, array_merge($primary_key_array, array_combine($table_relationed->primary_key, $id)));
 
 			$this->_insert($data, array(
 				'table' => $pivot_table,
@@ -258,8 +261,8 @@
 
 			} else {
 
-				$columns = array_keys($data);
 				$namevalue = array();
+				$columns = array_keys($data);
 
 				foreach ($columns as $field)
 					array_push($namevalue, ':__INSERT__' . $field);
@@ -283,11 +286,12 @@
 
 					$statement->execute($array_combined);
 
-				} else
+				} else {
 					$statement->execute(array_combine($namevalues[0], $data));
-
+				}
+				
 				if (!$is_multi_insert) {
-					if ($this->is_primary_key_composite) { 
+					if ($this->is_primary_key_composite) {
 						foreach($this->primary_key as $field)
 							$this->_id[$field] = $data[$field];
 					}
@@ -306,27 +310,55 @@
 		public function save() 
 		{
 			$response = false;
-			if (is_null($this->_id)) {
+
+			if (is_null($this->_id) || ($this->is_primary_key_composite && is_null(reset($this->_id)))) {
+				
 				$attributes = array();
-				$not_test_guarded_fields = sizeof($this->guarded_fields) === 0;
-				foreach (array_keys($this->untouched) as $field)
-					if ($not_test_guarded_fields || !in_array($field, $this->guarded_fields, true))
+				$test_guarded_fields = sizeof($this->guarded_fields) > 0;
+				$writable_fields = array_keys($this->untouched);
+				
+				if ($test_guarded_fields)
+					foreach($writable_fields as $index => $field)
+						if (in_array($field, $this->guarded_fields, true))
+							unset($writable_fields[$index]); 
+				
+
+
+				if ($this->is_primary_key_composite && !is_null(reset($this->id))) {
+					foreach($this->id as $key_field => $key)
+						$attributes[$key_field] = $key;
+				} else if ($this->is_primary_key_composite)
+					$writable_fields = array_merge($writable_fields, $this->primary_key);
+
+				foreach ($writable_fields as $field)
 						$attributes[$field] = $this->$field;
+				
 				$response = $this->_insert($attributes);
 
 			} else {
+				
 				$dirty_fields = array();
-				$not_test_guarded_fields = sizeof($this->guarded_fields) === 0;
-				foreach($this->untouched as $field => $value)
-					if ($this->$field !== $value && 
-						($not_test_guarded_fields || !in_array($field, $this->guarded_fields, true))
-					)
+				$test_guarded_fields = sizeof($this->guarded_fields) > 0;
+				
+				$writable_fields_defaults = $this->untouched;
+
+				if ($test_guarded_fields) {
+					foreach(array_merge($this->guarded_fields, $this->primary_key) as $guarded_field)
+						if (isset($writable_fields_defaults[$guarded_field]))
+							unset($writable_fields_defaults[$guarded_field]);
+				}
+
+				foreach($writable_fields_defaults as $field => $default_value)
+					if ($this->$field !== $default_value)
 						$dirty_fields[$field] = $this->$field;
 
 				if (sizeof($dirty_fields) > 0)
 					$response = $this->_update($dirty_fields);
+
 			}
+
 			return $response;
+
 		}
 
 		protected function _update($data, $options = array())
@@ -360,9 +392,17 @@
 				$query = rtrim($query, ',');
 
 				if (!isset($options['where']))
-					if ($this->is_primary_key_composite)
-						$options['where'] = $this->_id;
-					else
+					if ($this->is_primary_key_composite) {
+						$first = true;
+						$options['where'] = array();
+						foreach($this->_id as $field_key => $key) {
+							if ($first) {
+								$first = false;
+								array_push($options['where'], array($field_key => $key));
+							} else
+								array_push($options['where'], array('AND' => array($field_key => $key)));
+						}
+					} else
 						$options['where'] = array($this->primary_key => $this->_id);
 
 				$where = $this->get_where_query_piece($options['where']);
@@ -690,6 +730,11 @@
 		{
 			$entity = new static(array('connection' => false));
 			return $entity->table();
+		}
+
+		public function has_composite_primary_key()
+		{
+			return $this->is_primary_key_composite;
 		}
 
 		protected function has_one($model, $primary_key = null)

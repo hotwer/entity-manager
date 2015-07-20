@@ -10,7 +10,7 @@ Demands a defintion of global constants:
 
  - Customized primary key name (just define a primary key name as string or composite primary key as an array of strings)
 
- - Is now able to handle composite primary keys (they must not be auto increment)
+ - Npw supports composite primary keys (they must not be auto increment)
 
 
 v0.0.1
