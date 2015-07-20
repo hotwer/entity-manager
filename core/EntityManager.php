@@ -228,6 +228,33 @@
 			return $this;
 		}
 
+		public function retrive($query, $data = null)
+		{	
+			try {
+				$statement = $this->connection->prepare($query);
+				if (!is_null($data))
+					$statement->execute($data);
+				else
+					$statement->execute();
+				return $statement->fetchAll(PDO::FETCH_ASSOC);
+			} catch(PDOException $e) {
+				throw new ErrorException("Failed to perform custom retrieve query (SQL:$query) -> ". $e->getMessager());
+			}
+		}
+
+		public function query($query, $data = null)
+		{
+			try {
+				$statement = $this->connection->prepare($query);
+				if (!is_null($data))
+					$statement->execute($data);
+				else
+					$statement->execute();
+			} catch(PDOException $e) {
+				throw new ErrorException("Failed to perform custom query (SQL:$query) -> ". $e->getMessager());
+			}
+		}
+
 		protected function _insert($data, $options = array())
 		{
 

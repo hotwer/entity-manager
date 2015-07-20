@@ -1,10 +1,13 @@
-SCEWeb Custom EntityManager ~ v0.0.2
+SCEWeb Custom EntityManager ~ v0.0.25
 
 Demands a defintion of global constants:
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
 
+New Features:
 
- New features:
+ - Added documentation for a starting guide. 
+
+v0.0.2:
 
  - Customized table name (just define a table name on the protected attribute $table for the table name value)
 
