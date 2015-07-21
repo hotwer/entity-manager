@@ -106,14 +106,13 @@ Ok, now we know how to save stuff, but how to retrieve?
 It's quite simple too, we have two helper methods: `find_by_id` and `where`
 
 ```
-$entity = MyEntity::find_by_id(1)
+$entity = MyEntity::findById(1)
 print $entity->field //prints what was in field of the entry of id '1' of database
 
 //@returns a Collection of the entity. See the collection_documentation.md for more info.
 $entity = MyEntity::where(array(field => 'my value'));
 
 //example of a complex where
-
 $entity = MyEntity::where(array(
 	'(field_1' => 'value',
 	'AND' => array('field_2' => '1)'),
@@ -130,24 +129,24 @@ This is a simple one to many relationship.
 ```
 class MyEntity extends EntityManager
 {
-	public function entity_relationed
+	public function entityRelationed()
 	{
-		return $this->has_one('EntityRelationed');
+		return $this->hasOne('EntityRelationed');
 	}
 }
 
 class EntityRelationed extends EntityManager
 {
-	public function entity
+	public function entity()
 	{
-		return $this->belongs_to_many('MyEntity');
+		return $this->belongsToMany('MyEntity');
 	}
 }
 ```
 
 Using is simple
 ```
-$entity = MyEntity::find_by_id(3)->entity_relationed(); //loads the entity relationed;
+$entity = MyEntity::findById(3)->entityRelationed(); //loads the entity relationed;
 print $entity->entity_relationed->entity_relationed_field; //easy access to their columns
 
 //and can also be updated
@@ -168,17 +167,17 @@ After the convention, defining it in the entity is a simple task
 ```
 class HasManyTableName extends EntityManager
 {
-	public function belongs_to_many_table_names()
+	public function belongsToManyTableNames()
 	{
-		return $this->has_many('BelongsToManyTableName');
+		return $this->hasMany('BelongsToManyTableName');
 	}
 }
 
 class BelongsToManyTableName extends EntityManager
 {
-	public function has_many_table_names()
+	public function hasManyTableNames()
 	{
-		return $this->belongs_to_many('HasManyTableName');
+		return $this->belongsToMany('HasManyTableName');
 	}
 }
 ```
@@ -187,7 +186,7 @@ And the use is the same
 
 ```
 //loads a collection of entities since it could be more than one
-$has_many_entity = HasManyTableName::find_by_id(11)->belongs_many_table_names();
+$has_many_entity = HasManyTableName::find_by_id(11)->belongsManyTableNames();
 
 print $has_many_entity->belongs_to_many_table_name->index(0)->field_after_pivot_table;
 
@@ -226,7 +225,7 @@ $connection = new PDO(...);
 
 $entity = new MyEntity(array('connection' => $connection));
 $entity = MyEntity::all();
-$entity = MyEntity::find_by_id(2, $connection);
+$entity = MyEntity::findById(2, $connection);
 $entity = MyEntity::where(array('field' => array('LIKE' => 'value%')), $connection);
 $entity = MyEntity::create(array('field' => 'new inserted value'), $connection);
 
@@ -239,21 +238,35 @@ $entity = new MyEntity(array('connection' => false))
 
 In certain cases, you need to go deep into querying to the database, but we do not recommend the use of these functions (`_select`, `_update`, `_insert` and `_update`). The all work alone, and serves for purpose of querying, but you can learn about then and use as well we just don't recommend if you don't know what you're doing. 
 
+Defining this way (method is protected)
+```
+class MyEntity extends EntityManager 
+{
+	public function allOrderedBy($field)
+	{
+		return $this->_select('order_by' => $field));
+	}
+}
+
+```
+
+Using this way:
+
 ```
 $entity = new MyEntity();
-//returns all elements from `my_entity` table ordered by `some_field`
-$elements = $entity->_select(array('order_by' => 'some_field'));
+//returns all elements ordered by `some_field`
+$elements = $entity->allOrderedBy('some_field');
 ```
 
 For tottaly custom queries we have these two methods `retieve` and `query`;
 
 ```
-$entity = new EntityManager();
+$entity = new EntityManager(); //no fields loaded when instantiating EntityManager
 
 //also returns all elements from `my_entity` table ordered by `some_field`
 $elements = $entity->retrive('SELECT * FROM my_entity ORDER BY `some_field`');
 
-//user retrive for fetching content from your database, like select queries or
+//use retrieve for fetching content from your database, like select queries or
 $process_list = $entity->retrive('DISPLAY PROCESSLIST');
 
 //or if you want to update or insert (its procedural, but throws any error if given)

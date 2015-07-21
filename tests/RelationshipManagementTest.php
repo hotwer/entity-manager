@@ -38,7 +38,7 @@
 
 		public function testGetObjectRelationshipOneToMany() 
 		{
-			$test_table = TestTable::find_by_id(11, $this->connection)->test_table_relations();
+			$test_table = TestTable::findById(11, $this->connection)->testTableRelations();
 
 			$this->assertEquals("Joana DArc", $test_table->name);
 			$this->assertEquals('this field is relationed', $test_table->test_table_relation->index(0)->relation_field);
@@ -55,7 +55,7 @@
 				$test_table_relation->save();
 			}
 
-			$test_table = TestTable::find_by_id(12, $this->connection)->test_table_relations();
+			$test_table = TestTable::findById(12, $this->connection)->testTableRelations();
 
 			$this->assertEquals('My field is not empty', $test_table->test_table_relation->index(0)->relation_field);
 			$this->assertEquals('And now has usefull information', $test_table->test_table_relation->index(1)->relation_field);
@@ -64,7 +64,7 @@
 
 		public function testUpdateObjectsRelationshipOneToMany() 
 		{
-			$test_table = TestTable::find_by_id(13, $this->connection)->test_table_relations();
+			$test_table = TestTable::findById(13, $this->connection)->testTableRelations();
 			$test_table->test_table_relation->first()->update(array('non_existing_field' => 'to useless value',  'relation_field' => 'Some new test value'));
 
 			$test_table_relation_row = $this->selectFromTestTableRelation('relation_field', 'WHERE test_table_relation_id = 6;');
@@ -74,14 +74,14 @@
 
 		public function testGetObjectsRelationshipManyToMany() 
 		{
-			$test_table = TestTable::find_by_id(14, $this->connection)->test_table_anothers();
+			$test_table = TestTable::findById(14, $this->connection)->testTableAnothers();
 
 			$this->assertEquals(2, $test_table->test_table_another->size());
 			$this->assertEquals('Zigs', $test_table->name);
 			$this->assertEquals('Ward', $test_table->test_table_another->index(0)->some_field);
 			$this->assertEquals('Zhonya',  $test_table->test_table_another->index(1)->some_field);
 
-			$test_table = TestTable::find_by_id(15, $this->connection)->test_table_anothers();
+			$test_table = TestTable::findById(15, $this->connection)->testTableAnothers();
 
 			$this->assertEquals(2, $test_table->test_table_another->size());
 			$this->assertEquals('Tresh', $test_table->name);
@@ -91,9 +91,9 @@
 
 		public function testInsertNewObjectsRelationshipManyToMany()
 		{
-			$test_table = TestTable::find_by_id(16, $this->connection);
+			$test_table = TestTable::findById(16, $this->connection);
 			$test_table->assert('TestTableAnother', array(3, 4));
-			$test_table = TestTable::find_by_id(17, $this->connection);
+			$test_table = TestTable::findById(17, $this->connection);
 			$test_table->assert('TestTableAnother', array(4, 3));
 
 			$test_table_to_another_pivot_row = $this->selectFromTestTablePivotTestTableAnother('test_table_id, test_table_another_id', 'WHERE test_table_id = 16'); 
@@ -166,6 +166,12 @@
 				});
 			});
 		}
+
+		public function testNotLazyEagerJoinAll()
+		{
+			$this->markTestIncomplete();
+		}
+
 
 		public function testNotLazyEagerJoinFromId()
 		{

@@ -3,6 +3,6 @@
 	{
 		public function cube()
 		{
-			return $this->belongs_to('Cube');
+			return $this->belongsTo('Cube');
 		}
 	}

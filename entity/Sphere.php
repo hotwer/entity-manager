@@ -3,6 +3,6 @@
 	{
 		public function circles()
 		{
-			return $this->has_many('Circle');
+			return $this->hasMany('Circle');
 		}
 	}

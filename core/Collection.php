@@ -13,7 +13,7 @@
 				$this->size = 0;
 			}
 
-			public static function from_array($elements)
+			public static function fromArray($elements)
 			{	
 				$first_element = reset($elements); 
 				$element_type = gettype($first_element);
@@ -57,7 +57,7 @@
 					return null;
 			}
 
-			public function push_infront($element)
+			public function pushInfront($element)
 			{
 				return $this->push($element, 0);
 			}
@@ -132,7 +132,7 @@
 				return $this->size;
 			}
 
-			private function sort_by_field($field)
+			private function sortByField($field)
 			{
 				$this->list = self::sorter($this->list, $field, $flag);
 			}
@@ -235,7 +235,7 @@
 				return $this->find($value, $field);
 			}
 
-			public function as_array()
+			public function asArray()
 			{
 				return $this->list;
 			}

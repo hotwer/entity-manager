@@ -3,11 +3,11 @@
 	{
 		public function center()
 		{
-			return $this->has_one('Center');
+			return $this->hasOne('Center');
 		}
 
 		public function spheres()
 		{
-			return $this->belongs_to_many('Sphere');
+			return $this->belongsToMany('Sphere');
 		}
 	}

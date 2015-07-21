@@ -1,13 +1,13 @@
 <?php
 	class TestTable extends EntityManager 
 	{
-		public function test_table_relations() 
+		public function testTableRelations() 
 		{
-			return $this->has_many('TestTableRelation');
+			return $this->hasMany('TestTableRelation');
 		}
 		
-		public function test_table_anothers() 
+		public function testTableAnothers() 
 		{
-			return $this->has_many('TestTableAnother');
+			return $this->hasMany('TestTableAnother');
 		}
 	}

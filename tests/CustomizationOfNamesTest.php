@@ -32,7 +32,7 @@
 
 		public function testGetOnCustomizedTableName()
 		{
-			$customized_table = CustomizedTable::find_by_id(1, $this->connection);
+			$customized_table = CustomizedTable::findById(1, $this->connection);
 			$this->assertEquals('uber_default_value', $customized_table->field);
 
 			$customized_table = CustomizedTable::where(array('field' => array('LIKE' => 'some value%')), $this->connection)->first();
@@ -60,14 +60,14 @@
 
 		public function testUpdateOnCustomizedTableName()
 		{
-			CustomizedTable::find_by_id(1, $this->connection)->update(array('field' => 'some new value'));	
+			CustomizedTable::findById(1, $this->connection)->update(array('field' => 'some new value'));	
 			$customized_table_row = $this->selectFromCustomizedTable('WHERE custom_id = 1');
 			$this->assertEquals('some new value', $customized_table_row[0]['field']); 
 		}
 
 		public function testGetOnTableWithCompositeKey()
 		{
-			$customized_table = TableWithCompositeKey::find_by_id(array('first_key' => 1, 'second_key' => 2), $this->connection);
+			$customized_table = TableWithCompositeKey::findById(array('first_key' => 1, 'second_key' => 2), $this->connection);
 			$this->assertEquals('some other value', $customized_table->field);
 
 			$customized_table = TableWithCompositeKey::where(array('field' => array('LIKE' => '%default_uber')), $this->connection)->first(); 
@@ -98,7 +98,7 @@
 
 		public function testUpdateOnTableWithCompositeKey()
 		{
-			TableWithCompositeKey::find_by_id(array('first_key' => 1, 'second_key' => 1), $this->connection)
+			TableWithCompositeKey::findById(array('first_key' => 1, 'second_key' => 1), $this->connection)
 				->update(array('field' => 'some new value'));	
 			$customized_table_row = $this->selectFromTableWithCompositeKey('WHERE (first_key = 1 AND second_key = 1) ');
 			$this->assertEquals('some new value', $customized_table_row[0]['field']); 

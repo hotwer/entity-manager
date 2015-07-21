@@ -57,7 +57,7 @@
 		}
 
 		public function testLoadAnObjectFromId() {
-			$test_table = TestTable::find_by_id(5, $this->connection);
+			$test_table = TestTable::findById(5, $this->connection);
 
 			$this->assertEquals('Doe Arruan Jhon', $test_table->name);
 			$this->assertEquals(11, $test_table->age);
@@ -103,7 +103,7 @@
 
 		public function testUpdateObjectSaving()
 		{
-			$test_table = TestTable::find_by_id(10, $this->connection);
+			$test_table = TestTable::findById(10, $this->connection);
 
 			$test_table->name = 'Jhon NewName';
 			$test_table->age = 22;

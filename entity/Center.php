@@ -3,6 +3,6 @@
 	{
 		public function circle()
 		{
-			return $this->belongs_to('Circle');
+			return $this->belongsTo('Circle');
 		}
 	}

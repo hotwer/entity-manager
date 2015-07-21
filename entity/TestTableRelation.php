@@ -1,8 +1,8 @@
 <?php
 	class TestTableRelation extends EntityManager
 	{
-		public function test_table() 
+		public function testTable() 
 		{
-			return $this->belongs_to('TestTable');
+			return $this->belongsTo('TestTable');
 		}
 	}

@@ -3,6 +3,6 @@
 	{
 		public function squares()
 		{
-			return $this->has_many('Square');
+			return $this->hasMany('Square');
 		}
 	}
