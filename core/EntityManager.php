@@ -58,8 +58,9 @@
 						);
 					else
 						$this->connection = $options['connection'];
-
-					$this->built = $this->load_fields($options['find_action'], $options['find_value']);
+					if ($this->class_name !== 'EntityManager' ) {
+						$this->built = $this->load_fields($options['find_action'], $options['find_value']);
+					}
 				} catch (PDOException $e) {
 					throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
 				}
@@ -228,7 +229,7 @@
 			return $this;
 		}
 
-		public function retrive($query, $data = null)
+		public function retrieve($query, $data = null)
 		{	
 			try {
 				$statement = $this->connection->prepare($query);

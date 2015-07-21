@@ -95,5 +95,12 @@ CREATE TABLE `table_with_composite_key` (
 	PRIMARY KEY (`first_key`, `second_key`)
 ) ENGINE=InnoDB COLLATE="utf8_general_ci";
 
+DROP TABLE IF EXISTS `custom_query`;
+CREATE TABLE `custom_query` (
+	`custom_query_id` INT(11) NOT NULL AUTO_INCREMENT,
+	`field` VARCHAR(128) DEFAULT "",
+	PRIMARY KEY (`custom_query_id`)
+) ENGINE=InnoDB COLLATE="utf8_general_ci";
+
 
  --

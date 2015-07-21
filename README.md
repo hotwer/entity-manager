@@ -12,6 +12,7 @@ v0.0.25
 
  - Added documentation for a starting guide. 
 
+
 v0.0.2:
 
  - Customized table name (just define a table name on the protected attribute $table for the table name value)

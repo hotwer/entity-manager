@@ -253,3 +253,11 @@ table_with_composite_key:
     first_key: 2
     second_key: 2
     field: some fine values here
+
+custom_query:
+  -
+    custom_query_id: 1
+    field: some field value
+  -
+    custom_query_id: 2
+    field: value some field

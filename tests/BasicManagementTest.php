@@ -1,7 +1,7 @@
 <?php
 	class BasicManagementTest extends PHPUnit_Framework_TestCase {
 
-		protected $connection = null;
+		protected $connection;
 		protected $database_prefix = '';
 
 		public function __construct() 

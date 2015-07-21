@@ -14,13 +14,14 @@
 			}
 
 			public static function from_array($elements)
-			{
-				$element_class = get_class(reset($elements));
-				
-				if ($element_class !== false)
-					$collection = new self($element_class);
+			{	
+				$first_element = reset($elements); 
+				$element_type = gettype($first_element);
+
+				if ($element_type === 'object' || $element_type === 'Resource')
+					$collection = new self(get_class($first_element));
 				else
-					$collection = new self(gettype(reset($elements)));
+					$collection = new self($element_type);
 
 				foreach($elements as $element)
 					$collection->push($element);

@@ -1,8 +1,7 @@
 <?php
 	class CustomizationOfNamesTest extends PHPUnit_Framework_TestCase
 	{
-		protected $connection = null;
-		protected $database_prefix = '';
+		protected $connection;
 
 		public function __construct() 
 		{
