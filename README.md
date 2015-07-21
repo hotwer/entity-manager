@@ -3,6 +3,14 @@ SCEWeb Custom EntityManager ~ v0.0.26
 Demands a defintion of global constants:
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
 
+v0.2.0
+
+- Added two new methods for deleting
+    - destroy($id *required*, $connection => default is NULL)
+        - Required $id, and can recieve and outter PDO connection (for perfomance purposes)
+    - delete
+        - Deletes the instance from database (if it was saved)
+
 v0.1.0
 
 - Rewriteded code to use [PSR-1](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-1-basic-coding-standard.md) and [PSR-2](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md) conventions (with also some custom conventions as well)
