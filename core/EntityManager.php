@@ -313,7 +313,7 @@ class EntityManager {
 
         }
 
-        $query .= "(" . implode(",", $columns) . ")" . " VALUES ";
+        $query .= "(`" . implode("`,`", $columns) . "`)" . " VALUES ";
         foreach ($namevalues as $namevalue) 
              $query .= "(" . implode(',', $namevalue ) . "),";
         $query = rtrim($query, ',');
