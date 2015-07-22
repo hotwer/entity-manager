@@ -120,4 +120,35 @@
 
 		}
 
+		public function testDeleteSavedObject()
+		{
+			$this->markTestIncomplete();
+		}
+
+		public function testDeleteUnsavedObject()
+		{
+			$this->markTestIncomplete();
+		}
+
+		public function testDeleteObjectAfterSaving()
+		{
+			$test_table = TestTable::create(array(
+				'name' => 'Abc Jhon',
+				'age' => 11,
+				'someother_field' => 'aaaaa',
+			), $this->connection);
+
+			$test_table_row = $this->selectFromTestTable('*', 'WHERE name = "Abc Jhon"');
+
+			$this->assertEquals(11, $test_table_row[0]['age']);
+
+			$test_table->delete();
+
+			$test_table_row = $this->selectFromTestTable('*', 'WHERE name = "Abc Jhon"');
+
+			$this->assertEquals(0, sizeof($test_table_row));
+
+
+		}
+
 	}

@@ -1,7 +1,12 @@
-SCEWeb Custom EntityManager ~ v0.0.26
+SCEWeb Custom EntityManager ~ v0.2.1
 
 Demands a defintion of global constants:
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+v0.2.1
+
+- Fixed some issues
+- Implemented tests for deleting methods
 
 v0.2.0
 
@@ -33,7 +38,7 @@ v0.0.2:
 
 - Customized primary key name (just define a primary key name as string or composite primary key as an array of strings)
 
-- Npw supports composite primary keys (they must not be auto increment)
+- Now supports composite primary keys (they must not be auto increment)
 
 
 v0.0.1

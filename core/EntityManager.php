@@ -227,21 +227,21 @@ class EntityManager {
         return $this;
     }
 
-    public static function delete($id, $connection = null)
+    public static function destroy($id, $connection = null)
     {
         $entity = self::findById(array('connection' => $connection));
         if (!is_null($entity))
             $entity->destroy();
     }
 
-    public function destroy()
+    public function delete()
     {
         if ($this->is_primary_key_composite)
             $primary_key_array = $this->_id;
         else
             $primary_key_array = array($this->primary_key => $this->_id);
 
-        $this->_delete(array('where' => $primary_key_array))
+        $this->_delete(array('where' => $primary_key_array));
     }
 
     public function retrieve($query, $data = null)
