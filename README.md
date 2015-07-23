@@ -1,16 +1,35 @@
-SCEWeb Custom EntityManager ~ v0.2.1
+SCEWeb Custom EntityManager ~ v0.3.5
 
 Demands a defintion of global constants:
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+v0.3.5
+
+- New Features
+    - New method `whereRaw` for creating raw "where" queries
+    - New method findByIdOrFail to maintain the last behaviour of throwing an error when not finding the entry
+
+- Fixed issues:
+    - 'Time' fields weren't been parsed and saved correctly
+
+- Added new tests:
+    - Veryfing field types for dates/datetimes/timestamps
+        - If they save correctly
+        - If they are parsed correctly
+    - for new method `whereRaw`
+    - for new functionality of findById (returns null value instead of throwing an error)
+
 
 v0.2.2
 
 - Fixed issue where if could get query errors when using column names of reserved words.
 
+
 v0.2.1
 
 - Fixed some issues
 - Implemented tests for deleting methods
+
 
 v0.2.0
 
@@ -19,6 +38,7 @@ v0.2.0
         - Required $id, and can recieve and outter PDO connection (for perfomance purposes)
     - delete
         - Deletes the instance from database (if it was saved)
+
 
 v0.1.0
 

@@ -11,6 +11,12 @@ class EntityManager {
 
     private $_id;
     private $untouched;
+    private $date_time_properties;
+
+    const DB_DATE_FORMAT = 'Y-m-d';
+    const DATE_FORMAT = 'd/m/Y';
+    const DB_DATETIME_FORMAT = 'Y-m-d H:i:s';
+    const DATETIME_FORMAT = 'd/m/Y H:i:s';
 
     public $built;
 
@@ -34,6 +40,7 @@ class EntityManager {
 
         $this->guarded_fields = array();
         $this->untouched = array();
+        $this->date_time_properties = array();
         $this->built = true;
 
         if (!isset($options['connection']) || $options['connection'] !== false) {
@@ -69,9 +76,9 @@ class EntityManager {
     {
         if (is_null($connection))
             try {
-                    $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
-                        DB_USERNAME, DB_PASSWORD
-                    );
+                $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
+                    DB_USERNAME, DB_PASSWORD
+                );
             } catch (PDOException $e) {
                 throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
             }
@@ -95,20 +102,35 @@ class EntityManager {
 
     public static function findById($id, $connection = null) 
     {
-        return new static(array(
+        $entity = new static(array(
             'connection' => $connection, 
             'find_action' => 'find_by_id',
             'find_value' => $id,
         ));
+
+        if (!$entity->built)
+            return null;
+        else
+            return $entity;
+    }
+
+    public static function findByIdOrFail($id, $connection = null)
+    {
+        $entity = self::findById($id, $connection);
+
+        if (is_null($entity))
+            throw new ErrorException("Cannot find entity by id");
+
+        return $entity;
     }
 
     public static function where(array $conditions, $connection = null)
     {
         if (is_null($connection))
             try {
-                    $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
-                        DB_USERNAME, DB_PASSWORD
-                    );
+                $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
+                    DB_USERNAME, DB_PASSWORD
+                );
             } catch (PDOException $e) {
                 throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
             }
@@ -130,6 +152,35 @@ class EntityManager {
         return Collection::fromArray($instances);
     }
 
+    public static function whereRaw($conditions, $params = array(), $connection = null)
+    {
+        if (is_null($connection))
+            try {
+                $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
+                    DB_USERNAME, DB_PASSWORD
+                );
+            } catch (PDOException $e) {
+                throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
+            }
+        
+
+        $instances = array();
+        $find = new static(array('connection' => $connection));
+        $values = $find->_select(array('where_raw' => $conditions, 'where_params' => $params));
+        $table_description = $find->getTableDescription();
+
+        foreach($values as $row)
+            array_push($instances, new static(array(
+                'connection' => $connection, 
+                'find_action' => 'where', 
+                'find_value' => $row, 
+                'table_description' => $table_description,
+            )));
+
+        return Collection::fromArray($instances);
+    }
+
+
     public static function allWith()
     {
         throw new BadMethodCallException('Not yet implemented.');
@@ -147,14 +198,15 @@ class EntityManager {
 
     public static function _concatenateRelation(array $conditions, $with, $connection = null)
     {
-        if (is_null($connection))
+        if (is_null($connection)) {
             try {
-                    $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
-                        DB_USERNAME, DB_PASSWORD
-                    );
+                $connection = new PDO('mysql:host=' . DB_HOSTNAME . ';dbname=' .  DB_DATABASE, 
+                    DB_USERNAME, DB_PASSWORD
+                );
             } catch (PDOException $e) {
                 throw new ErrorException('Failed to connect to the database or load fields: ' . $e->getMessage());
             }
+        }
         
         $instances = array();
         $table_fields = array();
@@ -231,7 +283,7 @@ class EntityManager {
     {
         $entity = self::findById(array('connection' => $connection));
         if (!is_null($entity))
-            $entity->destroy();
+            $entity->delete();
     }
 
     public function delete()
@@ -363,9 +415,7 @@ class EntityManager {
             if ($test_guarded_fields)
                 foreach($writable_fields as $index => $field)
                     if (in_array($field, $this->guarded_fields, true))
-                        unset($writable_fields[$index]); 
-            
-
+                        unset($writable_fields[$index]);     
 
             if ($this->is_primary_key_composite && !is_null(reset($this->id))) {
                 foreach($this->id as $key_field => $key)
@@ -374,6 +424,9 @@ class EntityManager {
                 $writable_fields = array_merge($writable_fields, $this->primary_key);
 
             foreach ($writable_fields as $field)
+                if ($this->isDateTimeProperty($field)) {
+                    $attributes[$field] = $this->$field->format(self::DB_DATETIME_FORMAT);
+                } else
                     $attributes[$field] = $this->$field;
             
             $response = $this->_insert($attributes);
@@ -392,8 +445,13 @@ class EntityManager {
             }
 
             foreach($writable_fields_defaults as $field => $default_value)
-                if ($this->$field !== $default_value)
-                    $dirty_fields[$field] = $this->$field;
+                if ($this->isDateTimeProperty($field)) {
+                    $time = $this->$field->format(self::DB_DATETIME_FORMAT);
+                    if ($time !== $default_value)
+                        $dirty_fields[$field] = $time;
+                } else
+                    if ($this->$field !== $default_value)
+                        $dirty_fields[$field] = $this->$field;
 
             if (sizeof($dirty_fields) > 0)
                 $response = $this->_update($dirty_fields);
@@ -410,7 +468,7 @@ class EntityManager {
             throw new ErrorException('$data parameter must be an mapping array [column => value] or an array of mapping arrays [i => [column => value]] ');
 
         if (!is_array($options))
-            throw new ErrorException('invalid $options array [valid arguments=table,where]');
+            throw new ErrorException('invalid $options array [valid arguments=table,where,where_raw]');
 
         if (isset($options['table'])) {
             if(!is_string($options['table']))
@@ -434,23 +492,31 @@ class EntityManager {
             }
             $query = rtrim($query, ',');
 
-            if (!isset($options['where']))
-                if ($this->is_primary_key_composite) {
-                    $first = true;
-                    $options['where'] = array();
-                    foreach($this->_id as $field_key => $key) {
-                        if ($first) {
-                            $first = false;
-                            array_push($options['where'], array($field_key => $key));
-                        } else
-                            array_push($options['where'], array('AND' => array($field_key => $key)));
-                    }
-                } else
-                    $options['where'] = array($this->primary_key => $this->_id);
+            if (!isset($options['where_raw'])) {
+                if (!isset($options['where']))
+                    if ($this->is_primary_key_composite) {
+                        $first = true;
+                        $options['where'] = array();
+                        foreach($this->_id as $field_key => $key) {
+                            if ($first) {
+                                $first = false;
+                                array_push($options['where'], array($field_key => $key));
+                            } else
+                                array_push($options['where'], array('AND' => array($field_key => $key)));
+                        }
+                    } else
+                        $options['where'] = array($this->primary_key => $this->_id);
 
-            $where = $this->getWhereQueryPiece($options['where']);
-            $params = array_merge($params, $where['params']);
-            $query .= $where['query'];
+                $where = $this->getWhereQueryPiece($options['where']);
+                $params = array_merge($params, $where['params']);
+                $query .= $where['query'];
+            } else {
+                if (isset($options['where_params']))
+                    $params = $options['where_params'];
+                else
+                    $params = array();    
+                $query .= ' WHERE '.$options['where_raw'];
+            }
 
             try {
                 $statement = $this->connection->prepare($query);
@@ -499,21 +565,28 @@ class EntityManager {
                 $query .= $this->getJoinQueryPiece($options['tables_join'], $table);
         }
 
-        if (isset($options['where'])) {
-            $params = array();
-            if (!is_array($options['where']))
-                throw new ErrorException('
-                    $options argument "where" must be a mapping array [field => value]
-                    or an array of mapping arrays (of conditional of comparison) and after the first argument, de second array must 
-                    have a conditional mapping
-                    [[field1 => value1], [field2 => [conditional ("AND" or "OR") => value2]..],
-                    [[field1 => [comparison ("=", "<>", "LIKE") => value1]],
-                    [field2 => [conditional ("AND" or "OR") => [comparison => value2]..]
-                    (obs.: include ! after the field name for a not equal comparison)
-                ');
-            $where = $this->getWhereQueryPiece($options['where']);
-            $params = $where['params'];
-            $query .= $where['query'];          
+        if (!isset($options['where_raw'])) {
+            if (isset($options['where'])) {
+                $params = array();
+                if (!is_array($options['where']))
+                    throw new ErrorException('
+                        $options argument "where" must be a mapping array [field => value]
+                        or an array of mapping arrays (of conditional of comparison) and after the first argument, de second array must 
+                        have a conditional mapping
+                        [[field1 => value1], [field2 => [conditional ("AND" or "OR") => value2]..],
+                        [[field1 => [comparison ("=", "<>", "LIKE") => value1]],
+                        [field2 => [conditional ("AND" or "OR") => [comparison => value2]..]
+                    ');
+                $where = $this->getWhereQueryPiece($options['where']);
+                $params = $where['params'];
+                $query .= $where['query'];          
+            }
+        } else { 
+            if (isset($options['where_params']))
+                $params = $options['where_params'];
+            else
+                $params = array();
+            $query .= ' WHERE '.$options['where_raw'];
         }
 
         foreach (array('group_by' => ' GROUP BY ' ,'order_by' => ' ORDER BY ') as $argument_index => $argument)
@@ -540,7 +613,7 @@ class EntityManager {
         try {
             $statement = $this->connection->prepare($query);
 
-            if (isset($options['where'])) {
+            if (isset($options['where']) || isset($options['where_params'])) {
                 $statement->execute($params);
             }   
             else
@@ -601,7 +674,7 @@ class EntityManager {
         $query = '';
         foreach ($tables_join as $index => $table_join)
             if (!is_array($table_join)) 
-                $query .= ' JOIN ' . $table_join . ' USING (' . $table . '_id)';
+                $query .= ' JOIN `' . $table_join . '` USING (' . $table . '_id)';
             else {
                 $table_join_element = key($table_join);
                 $table_join_column = reset($table_join);
@@ -613,15 +686,15 @@ class EntityManager {
                         foreach ($table_join_column as $table_join_column_condition => $table_join_column_jump_and_field) {
                             if ($first) {
                                 $first = false;
-                                $query .= $table_join_element.'.'.$table_join_column_condition.' = '.$table.'.'.$table_join_column_jump_and_field;
+                                $query .= '`'.$table_join_element.'`.`'.$table_join_column_condition.'` = `'.$table.'`.`'.$table_join_column_jump_and_field.'`';
                             } else
-                                $query .= $table_join_column_condition.' '.$table_join_element.'.'.key($table_join_column_jump_and_field).' = '.$table.'.'.reset($table_join_column_jump_and_field);
+                                $query .= $table_join_column_condition.' `'.$table_join_element.'`.`'.key($table_join_column_jump_and_field).'` = `'.$table.'`.`'.reset($table_join_column_jump_and_field).'`';
                         }
                         $query .= ')';
                     } else 
-                        $query .= ' JOIN '.$table_join_element.' ON ('.$table_join_element.'.'.$table_join_column[1].' = '.$table.'.'.$table_join_column[0];
+                        $query .= ' JOIN `'.$table_join_element.'` ON (`'.$table_join_element.'`.`'.$table_join_column[1].'` = `'.$table.'`.`'.$table_join_column[0].'`';
                 } else
-                    $query .= ' JOIN '.$table_join_element.' ON ('.$table_join_element.'.'.$table_join_column.' = '.$table.'.'.$table_join_column;
+                    $query .= ' JOIN `'.$table_join_element.'` ON (`'.$table_join_element.'`.`'.$table_join_column.'` = `'.$table.'`.`'.$table_join_column.'`';
             }
         return $query;
     }   
@@ -650,10 +723,10 @@ class EntityManager {
                     $field = key($clause);
                     $value = reset($clause);
                     if (is_array($value)) {                 
-                        $query .= $field.' '.key($value).' :__WHERE__'.$index.'_'.$field;
+                        $query .= '`'.$field.'` '.key($value).' :__WHERE__'.$index.'_'.$field;
                         $params[':__WHERE__'.$index.'_'.$field] = reset($value);
                     } else {
-                        $query .= $field.'= :__WHERE__'.$index.'_'.$field;
+                        $query .= '`'.$field.'` = :__WHERE__'.$index.'_'.$field;
                         $params[':__WHERE__'.$index.'_'.$field] = $value;
                     }
                 } else {
@@ -662,10 +735,10 @@ class EntityManager {
                     $field = key($field_and_value);
                     $value = reset($field_and_value); 
                     if (is_array($value)) {
-                        $query .= ' '.$condition.' '.$field.' '.key($value).':__WHERE__'.$index.'_'.$field;
+                        $query .= ' '.$condition.' `'.$field.'` '.key($value).':__WHERE__'.$index.'_'.$field;
                         $params[':__WHERE__'.$index.'_'.$field] = reset($value);
                     } else {
-                        $query .= ' '.$condition.' '.$field.'= :__WHERE__'.$index.'_'.$field;
+                        $query .= ' '.$condition.' `'.$field.'` = :__WHERE__'.$index.'_'.$field;
                         $params[':__WHERE__'.$index.'_'.$field] = $value;
                     }
                 }
@@ -694,7 +767,7 @@ class EntityManager {
                 if (sizeof($row) > 0) 
                     $row = $row[0];
                 else
-                    throw new ErrorException("Can't find row by id");
+                    return false;
             } else if ($find_action === 'where') {
                 $row = $value;
             }
@@ -713,12 +786,18 @@ class EntityManager {
                     $this->_id = $id;
                 }
             } else {
-                $value = $this->parseType(preg_replace('/\([^)]*\)/', '', $description['Type']), !is_null($find_action) ? $row[$description['Field']] : $description['Default']);
-                $this->untouched[$description['Field']] = $value;
+                $field_type = preg_replace('/\([^)]*\)/', '', $description['Type']);
+                $value = $this->parseType($field_type, !is_null($find_action) ? $row[$description['Field']] : $description['Default']);
+                if (self::isTimeField($field_type)) {
+                    array_push($this->date_time_properties, $description['Field']); 
+                    $this->untouched[$description['Field']] = $value->format(self::DB_DATETIME_FORMAT);
+                } else
+                    $this->untouched[$description['Field']] = $value;
                 $this->{$description['Field']} = $value;
             }
-            
         }
+
+        return true;
     }
 
     public function getTableDescription() 
@@ -735,13 +814,13 @@ class EntityManager {
     {
         switch($type) {
             case "date":
-                $parsed_value = DateTime::createFromFormat(DB_DATE_FORMAT, $value);
+                $parsed_value = DateTime::createFromFormat(self::DB_DATE_FORMAT, $value);
+                $parsed_value = $parsed_value === false ? new DateTime() : $parsed_value;
                 break;
             case "datetime":
-                $parsed_value = DateTime::createFromFormat(DB_DATETIME_FORMAT, $value);
-                break;
             case "timestamp":
-                $parsed_value = DateTime::createFromFormat('U', $value);
+                $parsed_value = DateTime::createFromFormat(self::DB_DATETIME_FORMAT, $value);
+                $parsed_value = $parsed_value === false ? new DateTime() : $parsed_value;
                 break;
             case "tinyint":
                 $parsed_value = filter_var($value, FILTER_VALIDATE_BOOLEAN);            
@@ -836,6 +915,14 @@ class EntityManager {
         return $this;
     }
 
+    private function isDateTimeProperty($property_name)
+    {
+        foreach($this->date_time_properties as $date_time_property)
+            if ($property_name === $date_time_property)
+                return true;
+        return false;
+    }
+
     private static function hasArrayInMultiarrayElement($array)
     {
         return (is_array(reset($array)) && is_array(reset(reset($array))));
@@ -851,4 +938,11 @@ class EntityManager {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $class));
     }
 
+    private static function isTimeField($field_type)
+    {
+        foreach (array('datetime', 'date', 'timestamp') as $time_type)
+            if ($time_type === $field_type)
+                return true;
+        return false;
+    }
 }

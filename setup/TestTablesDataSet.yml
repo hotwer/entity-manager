@@ -261,3 +261,16 @@ custom_query:
   -
     custom_query_id: 2
     field: value some field
+    
+time:
+  -
+    time_id: 1
+    my_timestamp: 2009-09-09 09:09:59
+    my_datetime: 2010-10-10 03:03:03
+    my_date: 2011-11-11
+  -
+    time_id: 2
+    my_timestamp: 2009-09-09 09:10:00
+    my_datetime: 2010-10-10 03:03:04
+    my_date: 2011-11-11
+

@@ -102,5 +102,16 @@ CREATE TABLE `custom_query` (
 	PRIMARY KEY (`custom_query_id`)
 ) ENGINE=InnoDB COLLATE="utf8_general_ci";
 
+DROP TABLE IF EXISTS `time`;
+CREATE TABLE `time` (
+	`time_id` INT(11) NOT NULL AUTO_INCREMENT,
+	`my_timestamp` TIMESTAMP NOT NULL,
+	`my_timestamp_default` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	`my_datetime` DATETIME NOT NULL,
+	`my_datetime_default` DATETIME DEFAULT "1900-01-01 00:00:00",
+	`my_date` DATE NOT NULL,
+	`my_date_default` DATE DEFAULT "1900-01-01",
+	PRIMARY KEY (`time_id`)
+) ENGINE=InnoDB COLLATE='utf8_general_ci';
 
  --
