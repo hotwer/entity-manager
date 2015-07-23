@@ -265,16 +265,23 @@ class EntityManager {
         ));
 
         if (sizeof($ids) > 0) 
-            $this->assertAdd($ids);
+            $this->assertAdd($model, $ids, $primary_key_array);
 
         return $this;
     }
 
-    public function assertAdd($model)
+    public function assertAdd($model, $ids, $primary_key_array = null)
     {
         $table_relationed = new $model(array('connection' => false));
-        $pivot_table = $this->table.'_to_'.$t
+        $pivot_table = $this->table.'_to_'.$table_relationed->getTable();
         $data = array();
+
+        if (is_null($primary_key_array)) {
+            if ($this->is_primary_key_composite)
+                $primary_key_array = $this->_id;
+            else
+                $primary_key_array = array($this->primary_key => $this->_id);
+        }
 
         if (!$table_relationed->hasCompositePrimaryKey())
             foreach ($ids as $id)
