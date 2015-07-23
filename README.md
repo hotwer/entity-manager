@@ -1,7 +1,13 @@
-SCEWeb Custom EntityManager ~ v0.3.5
+SCEWeb Custom EntityManager ~ v0.3.6
 
 Demands a defintion of global constants:
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+v0.3.6
+
+- Fixed some fields that still where possible to be refeered as reserved words while quering
+- Fixed possible issue where asserting an empty array (to clear the assertions) could cause some error.
+- Add new function assertAdd, to assert new relations without destroing old ones.
 
 v0.3.5
 

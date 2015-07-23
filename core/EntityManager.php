@@ -249,7 +249,7 @@ class EntityManager {
         return $this;
     }
 
-    public function assert($model, $ids)
+    public function assert($model, $ids = array())
     {
         $table_relationed = new $model(array('connection' => false));
         $pivot_table = $this->table.'_to_'.$table_relationed->getTable();
@@ -264,6 +264,16 @@ class EntityManager {
             'where' => $primary_key_array,
         ));
 
+        if (sizeof($ids) > 0) 
+            $this->assertAdd($ids);
+
+        return $this;
+    }
+
+    public function assertAdd($model)
+    {
+        $table_relationed = new $model(array('connection' => false));
+        $pivot_table = $this->table.'_to_'.$t
         $data = array();
 
         if (!$table_relationed->hasCompositePrimaryKey())
@@ -273,9 +283,11 @@ class EntityManager {
             foreach ($ids as $id)
                 array_push($data, array_merge($primary_key_array, array_combine($table_relationed->primary_key, $id)));
 
+
         $this->_insert($data, array(
             'table' => $pivot_table,
         ));
+
         return $this;
     }
 
@@ -327,14 +339,14 @@ class EntityManager {
     {
 
         if (!is_array($data) || self::hasArrayInMultiarrayElement($data))
-            throw new ErrorException('$data parameter must be an mapping array [column => value] or an array of mapping arrays [i => [column => value]] ');
+            throw new InvalidArgumentException('$data parameter must be an mapping array [column => value] or an array of mapping arrays [i => [column => value]] ');
 
         if (!is_array($options))
-            throw new ErrorException('invalid $options array [valid arguments=~]');
+            throw new InvalidArgumentException('invalid $options array [valid arguments=~]');
 
         if (isset($options['table'])) {
             if(!is_string($options['table']))
-                throw new ErrorException('$option "table" argument must be a string');
+                throw new InvalidArgumentException('$option "table" argument must be a string');
             $table = $options['table'];
         } else 
             $table = $this->table;
@@ -465,14 +477,14 @@ class EntityManager {
     protected function _update($data, $options = array())
     {
         if (!is_array($data) || self::hasArrayInMultiarrayElement($data))
-            throw new ErrorException('$data parameter must be an mapping array [column => value] or an array of mapping arrays [i => [column => value]] ');
+            throw new InvalidArgumentException('$data parameter must be an mapping array [column => value] or an array of mapping arrays [i => [column => value]] ');
 
         if (!is_array($options))
-            throw new ErrorException('invalid $options array [valid arguments=table,where,where_raw]');
+            throw new InvalidArgumentException('invalid $options array [valid arguments=table,where,where_raw]');
 
         if (isset($options['table'])) {
             if(!is_string($options['table']))
-                throw new ErrorException('$option "table" argument must be a string');
+                throw new InvalidArgumentException('$option "table" argument must be a string');
             $table = $options['table'];
         } else 
             $table = $this->table;
@@ -488,7 +500,7 @@ class EntityManager {
 
             foreach($data as $field => $value) {
                 $params[':__UPDATE__'.$field] = $value;
-                $query .= $field.' = :__UPDATE__'.$field.',';
+                $query .= '`'.$field.'` = :__UPDATE__'.$field.',';
             }
             $query = rtrim($query, ',');
 
@@ -531,11 +543,11 @@ class EntityManager {
     protected function _select($options = array())
     {
         if (!is_array($options))
-            throw new ErrorException('invalid $options array [valid arguments=table, fields, tables_join, where, group_by, order_by, limit]');
+            throw new InvalidArgumentException('invalid $options array [valid arguments=table, fields, tables_join, where, group_by, order_by, limit]');
 
         if (isset($options['table'])) {
             if(!is_string($options['table']))
-                throw new ErrorException('$option "table" argument must be a string');
+                throw new InvalidArgumentException('$option "table" argument must be a string');
             $table = $options['table'];
         } else 
             $table = $this->table;
@@ -545,14 +557,14 @@ class EntityManager {
         if (!isset($options['fields']))
             $query .= ' * ';
         else if (!is_array($options['fields'])) 
-            throw new ErrorException('$option argument "fields" must be an array or a mapping array [field => as_name]');
+            throw new InvalidArgumentException('$option argument "fields" must be an array or a mapping array [field => as_name]');
         else $query .= $this->getFieldsQueryPiece($options['fields']);
 
         $query .= ' FROM ' . $table;
 
         if (isset($options['tables_join'])) {
             if (!is_array($options['tables_join']))
-                throw new ErrorException('
+                throw new InvalidArgumentException('
                     $options argument "tables_join" must be an array [table_join_1, table_join_2..], 
                     a mapping array [[table_join => table_join_id]..], 
                     an array mapping a array map [[table_join => [$table_join_jump => $tables_join_id]]..],
@@ -569,7 +581,7 @@ class EntityManager {
             if (isset($options['where'])) {
                 $params = array();
                 if (!is_array($options['where']))
-                    throw new ErrorException('
+                    throw new InvalidArgumentException('
                         $options argument "where" must be a mapping array [field => value]
                         or an array of mapping arrays (of conditional of comparison) and after the first argument, de second array must 
                         have a conditional mapping
@@ -592,7 +604,7 @@ class EntityManager {
         foreach (array('group_by' => ' GROUP BY ' ,'order_by' => ' ORDER BY ') as $argument_index => $argument)
             if (isset($options[$argument_index])) {
                 if (!is_string($options[$argument_index]) && !is_array($options[$argument_index]))
-                    throw new ErrorException('$options "'.$argument_index.'" argument must be a string field or an array of string fields (order matters)');
+                    throw new InvalidArgumentException('$options "'.$argument_index.'" argument must be a string field or an array of string fields (order matters)');
 
             $query .= $argument;
                 if (is_string($options[$argument_index]))
@@ -606,7 +618,7 @@ class EntityManager {
 
         if (isset($options['limit'])) {
             if (!is_numeric($options['limit']))
-                throw new ErrorException('$options "limit" argument must be a numeric value (string or number)');       
+                throw new InvalidArgumentException('$options "limit" argument must be a numeric value (string or number)');       
             $query .= ' LIMIT '.$options['limit'];
         }
 
@@ -628,11 +640,11 @@ class EntityManager {
     protected function _delete($options = array())
     {
         if (!is_array($options))
-            throw new ErrorException('invalid $options array [valid arguments=table, fields, tables_join, where, group_by, order_by, limit]');
+            throw new InvalidArgumentException('invalid $options array [valid arguments=table, fields, tables_join, where, group_by, order_by, limit]');
 
         if (isset($options['table'])) {
             if(!is_string($options['table']))
-                throw new ErrorException('$option "table" argument must be a string');
+                throw new InvalidArgumentException('$option "table" argument must be a string');
             $table = $options['table'];
         } else 
             $table = $this->table;
@@ -708,11 +720,11 @@ class EntityManager {
             $value = reset($where);
             if (is_array($value)) {
                 $field = key($where);
-                $query .= $field.' '.key($value).' :__WHERE__'.$field;
+                $query .= '`'.$field.'` '.key($value).' :__WHERE__'.$field;
                 $params[':__WHERE__'.$field] = reset($value);
             } else {
                 $field = key($where);
-                $query .= $field.'= :__WHERE__'.$field;
+                $query .= '`'.$field.'` = :__WHERE__'.$field;
                 $params[':__WHERE__'.$field] = $value;
             }
         } else {
