@@ -10,31 +10,33 @@ First you need to setup your enviroment. We'd suggest an AutoLoader to easily in
 
 Create a file with the following code:
 
-```
+```php
 class AutoLoader {
-	 
+     
 static private $classNames = array();
 
 public static function registerDirectory($dirName) {
-	$di = new DirectoryIterator($dirName);
-	foreach ($di as $file) {
-		if ($file->isDir() && !$file->isLink() && !$file->isDot()) {
-			self::registerDirectory($file->getPathname());
-		} elseif (substr($file->getFilename(), -4) === '.php') {
-			$className = substr($file->getFilename(), 0, -4);
-			AutoLoader::registerClass($className, $file->getPathname());
-		}
-	}
+    $di = new DirectoryIterator($dirName);
+    foreach ($di as $file) {
+        if ($file->isDir() && !$file->isLink() && !$file->isDot()) {
+            self::registerDirectory($file->getPathname());
+        } elseif (substr($file->getFilename(), -4) === '.php') {
+            $className = substr($
+
+            file->getFilename(), 0, -4);
+            AutoLoader::registerClass($className, $file->getPathname());
+        }
+    }
 }
 
 public static function registerClass($className, $fileName) {
-	AutoLoader::$classNames[$className] = $fileName;
+    AutoLoader::$classNames[$className] = $fileName;
 }
 
 public static function loadClass($className) {
-	if (isset(AutoLoader::$classNames[$className])) {
-		require_once(AutoLoader::$classNames[$className]);
-	}
+    if (isset(AutoLoader::$classNames[$className])) {
+        require_once(AutoLoader::$classNames[$className]);
+    }
  }
 
 }
@@ -45,7 +47,7 @@ spl_autoload_register(array('AutoLoader', 'loadClass'));
 
 After that you just need to include it to your main file with config and register your folders:
 
-```
+```php
 // bootstrap.php file example:
 require_once('config.php');
 require_once('lib/AutoLoader.php');
@@ -59,7 +61,7 @@ AutoLoader::registerDirectory('entity');
 
 To define an entity is really simple, just define your class extending the EntityManager class.
 
-```
+```php
 class MyEntity extends EntityManager 
 {
 
@@ -69,7 +71,7 @@ class MyEntity extends EntityManager
 Now, it automatically knows everything about your database table and your attributes.
 The table name expected is lowered case undescored name of the entity name and the primary key column name expected is the table name with '_id' and the end 
 
-```
+```php
 $entity = new MyEntity(); //creates the new entity
 
 //this attribute is already created with default db value for the 'my_entity' table 
@@ -85,27 +87,27 @@ $entity = MyEntity::create(array('column_name' => 'Some value to insert'));
 
 But it's just really a convention, you can define either the name of the primary key(s) and the table as well.
 
-```
+```php
 class SomeEntity extends EntityManager
 {
-	protected $table = 'my_custom_tablename';
-	protected $primary_key = 'my_custom_primary_key';
+    protected $table = 'my_custom_tablename';
+    protected $primary_key = 'my_custom_primary_key';
 }
 ```
 
 Right know, if your table has a composite primary key, it expects a an array to be set with the primary key names, this is mandadory
 
-```
+```php
 class MyEntity extends EntityManager
 {
-	protected $primary_key = array('primary_key', 'second_primary_key');
+    protected $primary_key = array('primary_key', 'second_primary_key');
 }
 ```
 
 Ok, now we know how to save stuff, but how to retrieve?
 It's quite simple too, we have two helper methods: `find_by_id` and `where`
 
-```
+```php
 $entity = MyEntity::findById(1)
 print $entity->field //prints what was in field of the entry of id '1' of database
 
@@ -114,38 +116,38 @@ $entity = MyEntity::where(array(field => 'my value'));
 
 //example of a complex where
 $entity = MyEntity::where(array(
-	'(field_1' => 'value',
-	'AND' => array('field_2' => '1)'),
-	'OR' => array('field_3' => array('<>' => 3)), 
+    '(field_1' => 'value',
+    'AND' => array('field_2' => '1)'),
+    'OR' => array('field_3' => array('<>' => 3)), 
 ));
 ```
 
 
 
-For defining relationships, its easy too, it has four helping funcitions for it: `has_one`, `belongs_to`, `has_many` and `belongs_to_many`.
+For defining relationships, its easy too, it has four helping funcitions for it: `hasOne`, `belongsTo`, `hasMany` and `belongsToMany`.
 
 This is a simple one to many relationship.
 
-```
+```php
 class MyEntity extends EntityManager
 {
-	public function entityRelationed()
-	{
-		return $this->hasOne('EntityRelationed');
-	}
+    public function entityRelationed()
+    {
+        return $this->hasOne('EntityRelationed');
+    }
 }
 
 class EntityRelationed extends EntityManager
 {
-	public function entity()
-	{
-		return $this->belongsToMany('MyEntity');
-	}
+    public function entity()
+    {
+        return $this->belongsToMany('MyEntity');
+    }
 }
 ```
 
 Using is simple
-```
+```php
 $entity = MyEntity::findById(3)->entityRelationed(); //loads the entity relationed;
 print $entity->entity_relationed->entity_relationed_field; //easy access to their columns
 
@@ -164,42 +166,49 @@ Well, at first we expect a table with this convention name
 
 After the convention, defining it in the entity is a simple task
 
-```
+```php
 class HasManyTableName extends EntityManager
 {
-	public function belongsToManyTableNames()
-	{
-		return $this->hasMany('BelongsToManyTableName');
-	}
+    public function belongsToManyTableNames()
+    {
+        return $this->hasMany('BelongsToManyTableName');
+    }
 }
 
 class BelongsToManyTableName extends EntityManager
 {
-	public function hasManyTableNames()
-	{
-		return $this->belongsToMany('HasManyTableName');
-	}
+    public function hasManyTableNames()
+    {
+        return $this->belongsToMany('HasManyTableName');
+    }
 }
 ```
 
 And the use is the same
 
-```
+```php
 //loads a collection of entities since it could be more than one
 $has_many_entity = HasManyTableName::find_by_id(11)->belongsManyTableNames();
 
 print $has_many_entity->belongs_to_many_table_name->index(0)->field_after_pivot_table;
 
 //to save any ids you want to relate, its easy as well
-$has_many_entity->assert(array(1, 2, 3, 4));
+$has_many_entity->assert('BelongsToManyTableName', array(1, 2, 3, 4));
+
+//or non destructive adding relations
+$has_many_entity->assertAdd('BelongsToManyTableName', array(5, 6));
+
+//or even just clear everything
+$has_many_entity->assert('BelongsToManyTableName');
 
 //or if its has a composite primary key
-$has_many_entity->assert(array(
-	array('key1' => 1, 'key2' => 2), 
-	array('key1' => 3, 'key2' => 4),
+$has_many_entity->assert('EntityRelationedWithCompositeKey', array(
+    array('key1' => 1, 'key2' => 2), 
+    array('key1' => 3, 'key2' => 4),
 ));
 
 ```
+
 
 And if the pivot table has any field?
 Well, in this case, we are not supporting this definition as a pivot table.
@@ -220,7 +229,7 @@ To supress this problem, every instatiation function has some way to pass a conn
 
 **It only supports PDO connections.**
 
-```
+```php
 $connection = new PDO(...);
 
 $entity = new MyEntity(array('connection' => $connection));
@@ -236,42 +245,25 @@ $entity = new MyEntity(array('connection' => false))
 
 ## Complex Approach ##
 
-In certain cases, you need to go deep into querying to the database, but we do not recommend the use of these functions (`_select`, `_update`, `_insert` and `_update`). The all work alone, and serves for purpose of querying, but you can learn about then and use as well we just don't recommend if you don't know what you're doing. 
+In certain cases, you need to go deep into querying to the database, but we do not recommend the use of these functions (`select`, `update`, `insert` and `delete`, ). They all work alone (and comes from de DatabaseTalker class), and serves for purpose of querying.
 
 Defining this way (method is protected)
-```
+```php
 class MyEntity extends EntityManager 
 {
-	public function allOrderedBy($field)
-	{
-		return $this->_select('order_by' => $field));
-	}
+    public function allOrderedBy($field)
+    {
+        return $this->database_talker->select(array('order_by' => $field));
+    }
 }
 
 ```
 
 Using this way:
 
-```
+```php
 $entity = new MyEntity();
+
 //returns all elements ordered by `some_field`
 $elements = $entity->allOrderedBy('some_field');
 ```
-
-For tottaly custom queries we have these two methods `retieve` and `query`;
-
-```
-$entity = new EntityManager(); //no fields loaded when instantiating EntityManager
-
-//also returns all elements from `my_entity` table ordered by `some_field`
-$elements = $entity->retrive('SELECT * FROM my_entity ORDER BY `some_field`');
-
-//use retrieve for fetching content from your database, like select queries or
-$process_list = $entity->retrive('DISPLAY PROCESSLIST');
-
-//or if you want to update or insert (its procedural, but throws any error if given)
-$entity->query('INSERT INTO my_entity (`some_field`, `another_field`) VALUES (?, ?), (?, ?)', array('value', 'value1', 'another value', 'another value2'));
-```
-
-
-

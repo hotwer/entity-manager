@@ -1,5 +1,5 @@
 <?php
-class QueryBuildersTest extends PHPUnit_Framework_TestCase
+class DatabaseTalkerTest extends PHPUnit_Framework_TestCase
 {
     protected $connection;
 

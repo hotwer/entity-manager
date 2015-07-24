@@ -1,7 +1,16 @@
-SCEWeb Custom EntityManager ~ v0.3.6
+SCEWeb Custom EntityManager ~ v0.5.0
 
-Demands a defintion of global constants:
+Demands a defintion of global constants (for **DatabaseTalker**):
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+v0.5.0
+
+- Created new class to deal with database querying and added new documentation
+
+- New class to deal with database querying: DatabaseTalker!
+
+- Database connection depency is now ONLY on DatabaseTalker (can reutilize connections as well) 
+
 
 v0.3.6
 
