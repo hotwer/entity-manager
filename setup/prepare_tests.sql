@@ -114,4 +114,15 @@ CREATE TABLE `time` (
 	PRIMARY KEY (`time_id`)
 ) ENGINE=InnoDB COLLATE='utf8_general_ci';
 
+DROP TABLE IF EXISTS `item`;
+CREATE TABLE `item` (
+	`item_id` INT(11) NOT NULL AUTO_INCREMENT,
+	`string` VARCHAR(128) NOT NULL,
+	`integer` INT(5) NOT NULL,
+	`boolean` TINYINT(1) NOT NULL DEFAULT 0,
+	`float` FLOAT(5,2) NOT NULL,
+	`decimal` DECIMAL(5,2) NOT NULL,
+	PRIMARY KEY (`item_id`)
+) ENGINE=InnoDB COLLATE='utf8_general_ci';
+
  --

@@ -1,7 +1,12 @@
-SCEWeb Custom EntityManager ~ v0.5.0
+SCEWeb Custom EntityManager ~ v0.5.1
 
 Demands a defintion of global constants (for **DatabaseTalker**):
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+v0.5.1
+
+- Collection class now has unity tests for it's purpose (yes, everything is fine and dending now) 
+- Fixed some functionlities with `sort` method
 
 v0.5.0
 

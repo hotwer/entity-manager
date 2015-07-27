@@ -78,6 +78,7 @@ class Collection {
             else {
                 for ($index = $this->size - 1; $index >= $position; $index--)
                     $this->list[$index + 1] = $this->list[$index];
+                $this->list[$position] = $element;
                 $this->size += 1;
             }
         } else
@@ -90,7 +91,7 @@ class Collection {
     {
         if ($this->size > 0) {
             if (is_null($position)) {
-                $element = $this->list[$this->size];
+                $element = $this->list[$this->size - 1];
                 unset($this->list[$this->size--]);
             } else if ($position < $this->size) {
                 $element = $this->list[$position];
@@ -108,8 +109,8 @@ class Collection {
 
     public function sort($field, $flag = 'DESC')
     {   
-        if (is_string($fields))
-            $this->sort_by_field($field, $flag);
+        if (is_string($field))
+            $this->sortByField($field, $flag);
         else 
             throw new ErrorException('$fields argument must be a string');
 
@@ -132,27 +133,27 @@ class Collection {
         return $this->size;
     }
 
-    private function sortByField($field)
+    private function sortByField($field, $flag)
     {
         $this->list = self::sorter($this->list, $field, $flag);
     }
 
     private static function sorter($elements, $field, $flag) 
     {
-        if( sizeof($elements) < 2 )
-                return $elements;
+        if (sizeof($elements) < 2)
+           return $elements;
         
         $left = $right = array();
         reset($elements);
         $pivot_key = key($elements);
         $pivot = array_shift($elements);
-        foreach( $array as $k => $v ) {
-                if(self::compare($v, $pivot, $field, $flag))
-                        $right[$k] = $v;
-                else
-                        $left[$k] = $v;
+        foreach ($elements as $k => $v) {
+            if (self::compare($v, $pivot, $field, $flag))
+                $right[$k] = $v;
+            else
+                $left[$k] = $v;
         }
-        return array_merge(self::sorter($left), array($pivot_key => $pivot), self::sorter($right));
+        return array_merge(self::sorter($left, $field, $flag), array($pivot_key => $pivot), self::sorter($right, $field, $flag));
     }
 
     private static function compare($first_element, $second_element, $field, $flag)
@@ -164,30 +165,39 @@ class Collection {
         );
 
         if ($type['first'] !== $type['second'])
-            throw new ErrorException('Compargin different types: '.$type['first'].', '.$type['second']);
+            throw new ErrorException('Comparing different types: '.$type['first'].', '.$type['second']);
 
-        switch($type['first'])
+        switch ($type['first'])
         {
             case "boolean":
-                if ($first_element)
-                    $evaluation = true;
-                else if ($second_element)
-                    $evaluation = false;
-                else
-                    $evaluation= true;
+                if ($flag === 'ASC' || $flag === 'ASCENDANT') {
+                    if ($first_element)
+                        $evaluation = true;
+                    else if ($second_element)
+                        $evaluation = false;
+                    else
+                        $evaluation= true;
+                } else {
+                    if ($first_element)
+                        $evaluation = false;
+                    else if ($second_element)
+                        $evaluation = true;
+                    else
+                        $evaluation= false;
+                }
                 break;
             case "integer":
             case "double":
-                if ($first_element >= $second_element)
-                    $evaluation = true;
+                if ($flag === 'ASC' || $flag === 'ASCENDANT')
+                    $evaluation = ($first_element >= $second_element);
                 else
-                    $evaluation = false;
+                    $evaluation = ($first_element < $second_element);
                 break;
             case "string":
-                if (strcasecmp($first_element, $second_element) >= 0)
-                    $evaluation = true;
+                if ($flag === 'ASC' || $flag === 'ASCENDANT')
+                    $evaluation = (strcmp($first_element, $second_element) >= 0);
                 else
-                    $evaluation = false;
+                    $evaluation = (strcmp($first_element, $second_element) < 0);
                 break;
             case "array":
                 $evaluation = self::compare($first_element[$field], $second_element[$field], '', $flag);
@@ -201,9 +211,6 @@ class Collection {
                 $evaluation = true;
         }
 
-        if ($flag === 'ASC' || $flag === 'ASCENDANT')
-                $evaluation = !$evaluation;
-    
         return $evaluation;
     }
 
@@ -225,7 +232,7 @@ class Collection {
         else if (sizeof($elements_found) < 2)
             $elements = $elements_found[0];
         else
-            $elements = self::from_array($elements_found);
+            $elements = self::fromArray($elements_found);
 
         return $elements;
     }

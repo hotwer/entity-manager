@@ -274,3 +274,32 @@ time:
     my_datetime: 2010-10-10 03:03:04
     my_date: 2011-11-11
 
+item:
+  -
+    item_id: 1
+    string: one
+    integer: 10
+    boolean: 1
+    float: 500.70
+    decimal: 32.06
+  -
+    item_id: 2
+    string: one
+    integer: 11
+    boolean: 0
+    float: 600.10
+    decimal: 32.07
+  -
+    item_id: 3
+    string: two
+    integer: 10
+    boolean: 1
+    float: 500.60
+    decimal: 32.08
+  -
+    item_id: 4
+    string: two
+    integer: 9
+    boolean: 0
+    float: 600.10
+    decimal: 32.09
