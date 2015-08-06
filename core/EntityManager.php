@@ -498,10 +498,15 @@ class EntityManager {
         return $entity->getTable();
     }
 
+    public function getPrimaryKey()
+    {
+        return $this->primary_key;
+    }
+
     public static function getPrimaryKeyFields()
     {
         $entity = new static(array('connection' => false));
-        return $entity->primary_key;
+        return $entity->getPrimaryKey();
     }
 
     public function hasCompositePrimaryKey()
@@ -546,7 +551,7 @@ class EntityManager {
         $entity = new $model(array('connection' => $this->db_talker->getConnection()));
         $model_table = $entity->getTable();
 
-        if (property_exists($entity, $primary_key))
+        if (property_exists($entity, $primary_key) || ($entity->hasCompositePrimaryKey() && in_array($primary_key, $entity->getPrimaryKey())))
             $this->$model_table = call_user_func_array($model.'::where', array(array($primary_key => $this->_id), $this->db_talker->getConnection()));
         else
             $this->$model_table = call_user_func_array($model.'::_concatenateRelation', array(array($primary_key => $this->_id), array($this->table.'_to_'.$model_table), $this->db_talker->getConnection()));
@@ -564,7 +569,7 @@ class EntityManager {
         
         $model_table = call_user_func($model.'::getTableName');
 
-        if (property_exists($this, $primary_key))
+        if (property_exists($this, $primary_key) || ($this->is_primary_key_composite && in_array($primary_key, $this->primary_key)))
             $this->$model_table = call_user_func_array($model.'::_concatenateRelation', array(array($primary_key => $this->_id), array($this->table), $this->db_talker->getConnection()));
         else
             $this->$model_table = call_user_func_array($model.'::_concatenateRelation', array(array($primary_key => $this->_id), array($model_table.'_to_'.$this->table), $this->db_talker->getConnection()));

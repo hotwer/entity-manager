@@ -29,7 +29,6 @@ class BasicManagementTest extends SetupTests
         $this->assertEquals('default value', $test_table->someother_field, 'on value someother_field');
         $this->assertTrue(property_exists($test_table, 'boolean_field'), 'on exists boolean_field');
         $this->assertEquals(false, $test_table->boolean_field, 'on value boolean_field');
-
     }
 
     public function testLoadAnObjectFromWhere() 

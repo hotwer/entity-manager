@@ -1,7 +1,11 @@
-SCEWeb Custom EntityManager ~ v0.5.1
+SCEWeb Custom EntityManager ~ v0.5.2
 
 Demands a defintion of global constants (for **DatabaseTalker**):
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+v0.5.2
+
+- Fixed problem where if the relation key where in the primary key (composite) the relation worked as if it had a pivot table.
+
 
 v0.5.1
 
