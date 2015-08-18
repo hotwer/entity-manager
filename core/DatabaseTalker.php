@@ -421,8 +421,9 @@ class DatabaseTalker
     }
 
     private static function hasArrayInMultiarrayElement($array)
-    {
-        return (is_array(reset($array)) && is_array(reset(reset($array))));
+    {   
+        $first = reset($array);
+        return (is_array($first) && is_array(reset($first)));
     }
 
     private static function isAssociative($array)

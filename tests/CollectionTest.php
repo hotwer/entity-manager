@@ -100,32 +100,33 @@ class CollectionTest extends SetupTests
     {
         $items = Item::all($this->connection);
 
-        $items->sort('string', 'ASC')->iterate(function($item, $index) 
+        $context = $this;
+        $items->sort('string', 'ASC')->iterate(function($item, $index) use ($context)
         {
             switch ($index) 
             {
                 case 0:
                 case 1:
-                    $this->assertEquals('one', $item->string);
+                    $context->assertEquals('one', $item->string);
                     break;
                 case 2:
                 case 3:
-                    $this->assertEquals('two', $item->string);
+                    $context->assertEquals('two', $item->string);
                     break;
             }
         });
 
-        $items->sort('string')->iterate(function($item, $index) 
+        $items->sort('string')->iterate(function($item, $index) use ($context)
         {
             switch ($index) 
             {
                 case 0:
                 case 1:
-                    $this->assertEquals('two', $item->string);
+                    $context->assertEquals('two', $item->string);
                     break;
                 case 2:
                 case 3:
-                    $this->assertEquals('one', $item->string);
+                    $context->assertEquals('one', $item->string);
                     break;
             }
         });
@@ -135,36 +136,38 @@ class CollectionTest extends SetupTests
     {
         $items = Item::all($this->connection);
 
-        $items->sort('integer', 'ASC')->iterate(function($item, $index) 
+        $context = $this;
+
+        $items->sort('integer', 'ASC')->iterate(function($item, $index) use ($context)
         {
             switch ($index) 
             {
                 case 0:
-                    $this->assertEquals(9, $item->integer);
+                    $context->assertEquals(9, $item->integer);
                     break;
                 case 1:
                 case 2:
-                    $this->assertEquals(10, $item->integer);
+                    $context->assertEquals(10, $item->integer);
                     break;
                 case 3:
-                    $this->assertEquals(11, $item->integer);
+                    $context->assertEquals(11, $item->integer);
                     break;
             }
         });
 
-        $items->sort('integer')->iterate(function($item, $index) 
+        $items->sort('integer')->iterate(function($item, $index) use ($context)
         {
             switch ($index) 
             {
                 case 0:
-                    $this->assertEquals(11, $item->integer);
+                    $context->assertEquals(11, $item->integer);
                     break;
                 case 1:
                 case 2:
-                    $this->assertEquals(10, $item->integer);
+                    $context->assertEquals(10, $item->integer);
                     break;
                 case 3:
-                    $this->assertEquals(9, $item->integer);
+                    $context->assertEquals(9, $item->integer);
                     break;
             }
         });
@@ -174,32 +177,34 @@ class CollectionTest extends SetupTests
     {
         $items = Item::all($this->connection);
 
-        $items->sort('boolean', 'ASC')->iterate(function($item, $index) 
+        $context = $this;
+
+        $items->sort('boolean', 'ASC')->iterate(function($item, $index) use ($context)
         {
             switch ($index) 
             {
                 case 0:
                 case 1:
-                    $this->assertEquals(false, $item->boolean);
+                    $context->assertEquals(false, $item->boolean);
                     break;
                 case 2:
                 case 3:
-                    $this->assertEquals(true, $item->boolean);
+                    $context->assertEquals(true, $item->boolean);
                     break;
             }
         });
 
-        $items->sort('boolean')->iterate(function($item, $index) 
+        $items->sort('boolean')->iterate(function($item, $index)  use ($context)
         {
             switch ($index) 
             {
                 case 0:
                 case 1:
-                    $this->assertEquals(true, $item->boolean);
+                    $context->assertEquals(true, $item->boolean);
                     break;
                 case 2:
                 case 3:
-                    $this->assertEquals(false, $item->boolean);
+                    $context->assertEquals(false, $item->boolean);
                     break;
             }
         });
@@ -209,36 +214,38 @@ class CollectionTest extends SetupTests
     {
         $items = Item::all($this->connection);
 
-        $items->sort('float', 'ASC')->iterate(function($item, $index) 
+        $context = $this;
+
+        $items->sort('float', 'ASC')->iterate(function($item, $index)  use ($context)
         {
             switch ($index) 
             {
                 case 0:
-                    $this->assertEquals(500.60, $item->float);
+                    $context->assertEquals(500.60, $item->float);
                     break;
                 case 1:
-                    $this->assertEquals(500.70, $item->float);
+                    $context->assertEquals(500.70, $item->float);
                     break;
                 case 2:
                 case 3:
-                    $this->assertEquals(600.10, $item->float);
+                    $context->assertEquals(600.10, $item->float);
                     break;
             }
         });
 
-        $items->sort('float')->iterate(function($item, $index) 
+        $items->sort('float')->iterate(function($item, $index)  use ($context)
         {
             switch ($index) 
             {
                 case 0:
                 case 1:
-                    $this->assertEquals(600.10, $item->float);
+                    $context->assertEquals(600.10, $item->float);
                     break;
                 case 2:
-                    $this->assertEquals(500.70, $item->float);
+                    $context->assertEquals(500.70, $item->float);
                     break;
                 case 3:
-                    $this->assertEquals(500.60, $item->float);
+                    $context->assertEquals(500.60, $item->float);
                     break;
             }
         });
@@ -248,40 +255,42 @@ class CollectionTest extends SetupTests
     {
         $items = Item::all($this->connection);
 
-        $items->sort('decimal', 'ASC')->iterate(function($item, $index) 
+        $context = $this;
+
+        $items->sort('decimal', 'ASC')->iterate(function($item, $index)  use ($context)
         {
             switch ($index) 
             {
                 case 0:
-                    $this->assertEquals(32.06, $item->decimal);
+                    $context->assertEquals(32.06, $item->decimal);
                     break;
                 case 1:
-                    $this->assertEquals(32.07, $item->decimal);
+                    $context->assertEquals(32.07, $item->decimal);
                     break;
                 case 2:
-                    $this->assertEquals(32.08, $item->decimal);
+                    $context->assertEquals(32.08, $item->decimal);
                     break;
                 case 3:
-                    $this->assertEquals(32.09, $item->decimal);
+                    $context->assertEquals(32.09, $item->decimal);
                     break;
             }
         });
 
-        $items->sort('decimal')->iterate(function($item, $index) 
+        $items->sort('decimal')->iterate(function($item, $index)  use ($context)
         {
             switch ($index) 
             {
                 case 0:
-                    $this->assertEquals(32.09, $item->decimal);
+                    $context->assertEquals(32.09, $item->decimal);
                     break;
                 case 1:
-                    $this->assertEquals(32.08, $item->decimal);
+                    $context->assertEquals(32.08, $item->decimal);
                     break;
                 case 2:
-                    $this->assertEquals(32.07, $item->decimal);
+                    $context->assertEquals(32.07, $item->decimal);
                     break;
                 case 3:
-                    $this->assertEquals(32.06, $item->decimal);
+                    $context->assertEquals(32.06, $item->decimal);
                     break;
             }
         });

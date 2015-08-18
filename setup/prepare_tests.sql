@@ -1,4 +1,8 @@
- -- Database settings for test:
+CREATE DATABASE `_entity_manager_test` COLLATE 'utf8_general_ci';
+
+USE `_entity_manager_test`;
+
+ -- Database settings for _entity_manager_test:
 
 DROP TABLE IF EXISTS `test_table`;
 CREATE TABLE `test_table` (
@@ -78,14 +82,14 @@ CREATE TABLE `sphere_to_circle` (
 	`sphere_id` INT(11) NOT NULL,
 	`circle_id` INT(11) NOT NULL,
 	PRIMARY KEY (`sphere_to_circle_id`)
-) ENGINE=InnoDB COLLATE="utf8_general_ci";
+) ENGINE=InnoDB COLLATE='utf8_general_ci';
 
 DROP TABLE IF EXISTS `my_custom_table`;
 CREATE TABLE `my_custom_table` (
 	`custom_id` INT(11) NOT NULL AUTO_INCREMENT,
 	`field` VARCHAR(127) DEFAULT "uber_default_value",
 	PRIMARY KEY (`custom_id`)
-) ENGINE=InnoDB COLLATE="utf8_general_ci";
+) ENGINE=InnoDB COLLATE='utf8_general_ci';
 
 DROP TABLE IF EXISTS `table_with_composite_key`;
 CREATE TABLE `table_with_composite_key` (
@@ -93,20 +97,20 @@ CREATE TABLE `table_with_composite_key` (
 	`second_key` INT(11) NOT NULL,
 	`field` VARCHAR(127) DEFAULT "value_default_uber",
 	PRIMARY KEY (`first_key`, `second_key`)
-) ENGINE=InnoDB COLLATE="utf8_general_ci";
+) ENGINE=InnoDB COLLATE='utf8_general_ci';
 
 DROP TABLE IF EXISTS `custom_query`;
 CREATE TABLE `custom_query` (
 	`custom_query_id` INT(11) NOT NULL AUTO_INCREMENT,
 	`field` VARCHAR(128) DEFAULT "",
 	PRIMARY KEY (`custom_query_id`)
-) ENGINE=InnoDB COLLATE="utf8_general_ci";
+) ENGINE=InnoDB COLLATE='utf8_general_ci';
 
 DROP TABLE IF EXISTS `time`;
 CREATE TABLE `time` (
 	`time_id` INT(11) NOT NULL AUTO_INCREMENT,
-	`my_timestamp` TIMESTAMP NOT NULL,
-	`my_timestamp_default` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	`my_timestamp` DATETIME DEFAULT "2015-08-18 16:49:00",
+	`my_timestamp_default` TIMESTAMP,
 	`my_datetime` DATETIME NOT NULL,
 	`my_datetime_default` DATETIME DEFAULT "1900-01-01 00:00:00",
 	`my_date` DATE NOT NULL,

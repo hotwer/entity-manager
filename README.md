@@ -1,7 +1,13 @@
-SCEWeb Custom EntityManager ~ v0.5.2
+SCEWeb Custom EntityManager ~ v0.5.3
 
 Demands a defintion of global constants (for **DatabaseTalker**):
 	DB_HOSTNAME, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+v0.5.3
+
+- Fixed incompatility with PHP 5.3.8, in DatabaseTalker::hasArrayInMultiArrray uitility method, was passing function return as reference instead of variable.
+
+
 v0.5.2
 
 - Fixed problem where if the relation key where in the primary key (composite) the relation worked as if it had a pivot table.

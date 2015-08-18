@@ -93,9 +93,10 @@ class RelationshipManagementTest extends SetupTests
     public function testObjectsHasOneGetting()
     {
         $centers = array(37, 3, 10);
-        Circle::all($this->connection)->iterate(function($circle, $index) use ($centers)
+        $context = $this;
+        Circle::all($this->connection)->iterate(function($circle, $index) use ($centers, $context)
         {
-            $this->assertEquals($centers[$index], $circle->center()->center->point);
+            $context->assertEquals($centers[$index], $circle->center()->center->point);
         });
     }
 
@@ -106,12 +107,12 @@ class RelationshipManagementTest extends SetupTests
             2 => 2.50, 
             1 => 3.00
         );
-
-        Center::all($this->connection)->iterate(function($center, $index) use ($circles)
+        $context = $this;
+        Center::all($this->connection)->iterate(function($center, $index) use ($circles, $context)
         { 
             foreach($circles as $id => $value)
                 if ($id === $center->id)
-                    $this->assertEquals($value, $center->circle()->circle->radius);
+                    $context->assertEquals($value, $center->circle()->circle->radius);
         });
     }   
 
@@ -122,12 +123,13 @@ class RelationshipManagementTest extends SetupTests
             2 => array(32.15, 6.25),
             3 => array(36.80),
         );
-        Cube::all($this->connection)->iterate(function($cube, $cube_index) use ($square_values)
+        $context = $this;
+        Cube::all($this->connection)->iterate(function($cube, $cube_index) use ($square_values, $context)
         {
             $square_relation = $square_values[$cube->id];
-            $cube->squares()->square->iterate(function($square, $square_index) use ($square_relation)
+            $cube->squares()->square->iterate(function($square, $square_index) use ($square_relation, $context)
             {   
-                $this->assertEquals($square_relation[$square_index], $square->size); 
+                $context->assertEquals($square_relation[$square_index], $square->size); 
             });
         });
     }
@@ -139,12 +141,13 @@ class RelationshipManagementTest extends SetupTests
             2 => array(0.00, 7.77),
             3 => array(7.77),
         );
-        Circle::all($this->connection)->iterate(function($circle, $circle_index) use ($sphere_values)
+        $context = $this;
+        Circle::all($this->connection)->iterate(function($circle, $circle_index) use ($sphere_values, $context)
         {
             $sphere_relation = $sphere_values[$circle->id];
-            $circle->spheres()->sphere->iterate(function($sphere, $sphere_index) use ($sphere_relation)
+            $circle->spheres()->sphere->iterate(function($sphere, $sphere_index) use ($sphere_relation, $context)
             {
-                $this->assertEquals($sphere_relation[$sphere_index], $sphere->volume);
+                $context->assertEquals($sphere_relation[$sphere_index], $sphere->volume);
             });
         });
     }
