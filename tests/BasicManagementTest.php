@@ -1,21 +1,8 @@
 <?php
+
 class BasicManagementTest extends SetupTests
 {
-    protected $database_prefix = '';   
-
-    private function selectFromTestTable($fields = '*', $specify = '') 
-    {
-        return $this->connection->query("SELECT $fields FROM `".$this->database_prefix."test_table` $specify")->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    private function selectFromTime($specify)
-    {
-        return $this->connection->query("SELECT * FROM time $specify")->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /* tests */ 
-
-    public function testLoadFields() 
+    public function testLoadFields()
     {
         $test_table = new TestTable(array('connection' => $this->connection));
 
@@ -31,18 +18,20 @@ class BasicManagementTest extends SetupTests
         $this->assertEquals(false, $test_table->boolean_field, 'on value boolean_field');
     }
 
-    public function testLoadAnObjectFromWhere() 
+    public function testLoadAnObjectFromWhere()
     {
-        $test_table = TestTable::where(array('name' => 'John Doe'), $this->connection);
-        $test_table = $test_table->first();
+        $test_table = TestTable::where(array('name' => 'John Doe'), $this->connection)->first();
 
-        $this->assertEquals(20, $test_table->age); 
+        $this->assertEquals(20, $test_table->age);
         $this->assertEquals('Some other value.', $test_table->someother_field);
         $this->assertEquals(true, $test_table->boolean_field);
 
     }
 
-    public function testLoadAnObjectFromId() {
+    /* tests */
+
+    public function testLoadAnObjectFromId()
+    {
         $test_table = TestTable::findById(5, $this->connection);
 
         $this->assertEquals('Doe Arruan Jhon', $test_table->name);
@@ -51,7 +40,7 @@ class BasicManagementTest extends SetupTests
 
     }
 
-    public function testLoadObjects() 
+    public function testLoadObjects()
     {
         $test_table = TestTable::where(array('age' => 21), $this->connection);
 
@@ -60,9 +49,8 @@ class BasicManagementTest extends SetupTests
             array('name' => 'Doe Jhon New Guy'),
         );
 
-        foreach($test_table as $index => $object)
-        {
-                $this->assertEquals($names[$index]['name'], $object->name);
+        foreach ($test_table as $index => $object) {
+            $this->assertEquals($names[$index]['name'], $object->name);
         }
 
     }
@@ -76,9 +64,8 @@ class BasicManagementTest extends SetupTests
             array('name' => 'Doe Jhon New Guy'),
         );
 
-        foreach($test_table as $index => $object)
-        {
-                $this->assertEquals($names[$index]['name'], $object->name);
+        foreach ($test_table as $index => $object) {
+            $this->assertEquals($names[$index]['name'], $object->name);
         }
     }
 
@@ -104,7 +91,7 @@ class BasicManagementTest extends SetupTests
 
         $this->assertEquals(0, $test_table_collection->size());
         $this->assertNull($test_table_collection->first());
-    }  
+    }
 
     public function testDontFindAnyObjectsInWhereRaw()
     {
@@ -113,7 +100,6 @@ class BasicManagementTest extends SetupTests
         $this->assertEquals(0, $test_table_collection->size());
         $this->assertNull($test_table_collection->first());
     }
-
 
     public function testSaveObject()
     {
@@ -126,13 +112,19 @@ class BasicManagementTest extends SetupTests
 
         $test_table->save();
 
-        $test_table_row = $this->selectFromTestTable('name, age, someother_field, boolean_field', 'WHERE name = "Test Name"');
+        $test_table_row = $this->selectFromTestTable('name, age, someother_field, boolean_field',
+            'WHERE name = "Test Name"');
 
         $this->assertEquals(1, sizeof($test_table_row));
         $this->assertEquals('Test Name', $test_table_row[0]['name']);
         $this->assertEquals(15, $test_table_row[0]['age']);
         $this->assertEquals('Some value to save', $test_table_row[0]['someother_field']);
         $this->assertEquals(1, $test_table_row[0]['boolean_field']);
+    }
+
+    public function selectFromTestTable($fields = '*', $specify = '')
+    {
+        return $this->connection->query("SELECT $fields FROM `test_table` $specify")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function testUpdateObjectSaving()
@@ -145,7 +137,8 @@ class BasicManagementTest extends SetupTests
 
         $test_table->save();
 
-        $test_table_row = $this->selectFromTestTable('name, age, someother_field, boolean_field', 'WHERE test_table_id = 10');
+        $test_table_row = $this->selectFromTestTable('name, age, someother_field, boolean_field',
+            'WHERE test_table_id = 10');
 
         $this->assertEquals('Jhon NewName', $test_table_row[0]['name']);
         $this->assertEquals(22, $test_table_row[0]['age']);
@@ -186,7 +179,7 @@ class BasicManagementTest extends SetupTests
     public function testNewObjectWithTimeFields()
     {
         $time = new Time(array('connection' => $this->connection));
-        
+
         $this->assertEquals(date('d/m/Y'), $time->my_date->format(EntityManager::DATE_FORMAT));
         $this->assertEquals('01/01/1900', $time->my_date_default->format(EntityManager::DATE_FORMAT));
         $this->assertEquals(date('d/m/Y H'), $time->my_datetime->format("d/m/Y H"));
@@ -205,7 +198,7 @@ class BasicManagementTest extends SetupTests
     }
 
     public function testSaveObjectWithTimeFields()
-    {   
+    {
         $time = new Time(array('connection' => $this->connection));
 
         $time->my_date = new DateTime('tomorrow');
@@ -217,6 +210,11 @@ class BasicManagementTest extends SetupTests
 
         $this->assertEquals($date, $time_row[0]['my_date']);
         $this->assertEquals($datetime, $time_row[0]['my_datetime']);
+    }
+
+    public function selectFromTime($specify)
+    {
+        return $this->connection->query("SELECT * FROM time $specify")->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function testUpdateObjectWithTimeField()

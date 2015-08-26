@@ -1,6 +1,6 @@
-### This is a helper class for dealing with the Entities created by the EntityManager ###
+### This is a helper class for dealing with the Entities created by the EntityManager
 
-## Instantied methods list: ##
+## Instanced methods list: ##
 
 * first()
     * returns the first element
@@ -10,7 +10,7 @@
 
 * push( element *required*,  int/string index )
     * inserts a new element into the collection
-    * accepts two arguemnts: the element to insert, and the position to where to insert
+    * accepts two arguments: the element to insert, and the position to where to insert
 
 * pop( int/string index )
     * removes an element from the collection
@@ -27,7 +27,7 @@
     * sorts by certain field of the collection
     * accepts two arguments: the field to sort and the criteria (ascendant or descendant)
 
-## Static methods list: ##
+## Static methods list:
  
-* fromArray( array ) -> expects a simetric array (all containing the same structure)
+* fromArray( array ) -> expects a symmetric array (all containing the same structure)
     * returns a collection from this array
