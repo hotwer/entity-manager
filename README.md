@@ -1,9 +1,18 @@
-## SCEWeb EntityManager ~ v0.6.0
+## SCEWeb EntityManager ~ v0.6.1
 
 Demands a definition of global constants (for **DatabaseTalker**):
     * `DB_HOSTNAME`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
 
 ### Changelog
+- v0.6.1
+    - Fixed issues while running tests
+        - Some fields were unreachable
+        - Some fields were non-existent
+        - Some `primary_key` fields weren't saving on `_id` field
+        - Changed method of verifying if certain property exists (in this case, is loaded)
+            - As before, only works after class is loaded with tables fields
+            - Since `property_exists` doesn't works with `__isset` magic method, `isset` will should behave the same as `property_exists`
+        - *Another bugs the tests didn't catch may still appear, so beware!*
 
 - v0.6.0
     - Rewrote all docs looking for grammar issues, and also re-organization

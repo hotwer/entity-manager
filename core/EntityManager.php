@@ -14,7 +14,7 @@ class EntityManager
     protected $is_primary_key_composite;
     protected $table_description;
     protected $guarded_fields;
-    protected $_columns;
+    private $_columns;
     private $_id;
     private $untouched;
     private $date_time_properties;
@@ -104,10 +104,10 @@ class EntityManager
                     $row = $value;
                 }
             }
-        }
 
-        if (!isset($row) || !is_array($row)) {
-            return false;
+            if (!isset($row) || !is_array($row) || sizeof($row) === 0) {
+                return false;
+            }
         }
 
         foreach ($this->getTableDescription() as $description) {
@@ -117,10 +117,10 @@ class EntityManager
                     if (!isset($this->id)) {
                         $this->_columns['id'] = array();
                     }
-                    $this->id[$description['Field']] = $id;
+                    $this->_columns['id'][$description['Field']] = $id;
                     $this->_id[$description['Field']] = $id;
                 } else {
-                    $this->id = $id;
+                    $this->_columns['id'] = $id;
                     $this->_id = $id;
                 }
             } else {
@@ -341,12 +341,14 @@ class EntityManager
             $table_fields[$table . '.' . $description['Field']] = $description['Field'];
         }
 
+        $model = new ReflectionClass(get_called_class());
+
         foreach ($db_talker->select(array(
             'fields' => $table_fields,
             'where' => $conditions,
             'tables_join' => $with,
         )) as $row) {
-            array_push($instances, new static(array(
+            array_push($instances, $model->newInstance(array(
                 'connection' => $connection,
                 'find_action' => 'where',
                 'find_value' => $row,
@@ -399,7 +401,8 @@ class EntityManager
     public function __get($property)
     {
         if (isset($this->_columns[$property])) {
-            return $this->_columns[$property];
+            $value = &$this->_columns[$property];
+            return $value;
         } else {
             return null;
         }
@@ -412,10 +415,14 @@ class EntityManager
         }
     }
 
+    public function __isset($property) {
+        return array_key_exists($property, $this->_columns);
+    }
+
     public function update($values)
     {
         foreach ($values as $field => $value) {
-            $this->$field = $value;
+            $this->_columns[$field] = $value;
         }
         $this->save();
         return $this;
@@ -439,7 +446,8 @@ class EntityManager
                 }
             }
 
-            if ($this->is_primary_key_composite && !is_null(reset($this->id))) {
+            if ($this->is_primary_key_composite && !is_null(reset($this->_columns['id']))) {
+
                 foreach ($this->id as $key_field => $key) {
                     $attributes[$key_field] = $key;
                 }
@@ -461,7 +469,7 @@ class EntityManager
 
             if (!$this->is_primary_key_composite) {
                 $this->_id = $response['last_inserted_id'];
-                $this->id = $response['last_inserted_id'];
+                $this->_columns['id'] = $response['last_inserted_id'];
             } else {
                 if (is_array($this->primary_key)) {
                     foreach ($this->primary_key as $primary_key_field) {
@@ -536,8 +544,8 @@ class EntityManager
 
     public function assert($model, $ids = array())
     {
-        $model = new ReflectionClass($model);
-        $table_relationed = $model->newInstance(array('connection' => false));
+        $class = new ReflectionClass($model);
+        $table_relationed = $class->newInstance(array('connection' => false));
         $pivot_table = $this->table . '_to_' . $table_relationed->getTable();
 
         if ($this->is_primary_key_composite) {
@@ -626,7 +634,7 @@ class EntityManager
         }
 
         $model_table = call_user_func($model . '::getTableName');
-        $this->$model_table = call_user_func_array($model . '::where',
+        $this->_columns[$model_table] = call_user_func_array($model . '::where',
             array(array($primary_key => $this->_id), $this->db_talker->getConnection()))->first();
         return $this;
     }
@@ -642,7 +650,7 @@ class EntityManager
         }
 
         $model_table = call_user_func($model . '::getTableName');
-        $this->$model_table = call_user_func_array($model . '::_concatenateRelation',
+        $this->_columns[$model_table] = call_user_func_array($model . '::_concatenateRelation',
             array(array($primary_key => $this->_id), array($this->table), $this->db_talker->getConnection()))->first();
         return $this;
     }
@@ -657,17 +665,17 @@ class EntityManager
             $primary_key = $this->primary_key;
         }
 
-        $model = new ReflectionClass($model);
-        $entity = $model->newInstance(array('connection' => $this->db_talker->getConnection()));
+        $class = new ReflectionClass($model);
+        $entity = $class->newInstance(array('connection' => $this->db_talker->getConnection()));
         $model_table = $entity->getTable();
 
-        if (property_exists($entity, $primary_key) || ($entity->hasCompositePrimaryKey() && in_array($primary_key,
+        if (isset($entity->$primary_key) || ($entity->hasCompositePrimaryKey() && in_array($primary_key,
                     $entity->getPrimaryKey()))
         ) {
-            $this->$model_table = call_user_func_array($model . '::where',
+            $this->_columns[$model_table] = call_user_func_array($model . '::where',
                 array(array($primary_key => $this->_id), $this->db_talker->getConnection()));
         } else {
-            $this->$model_table = call_user_func_array($model . '::_concatenateRelation', array(
+            $this->_columns[$model_table] = call_user_func_array($model . '::_concatenateRelation', array(
                 array($primary_key => $this->_id),
                 array($this->table . '_to_' . $model_table),
                 $this->db_talker->getConnection()
@@ -689,13 +697,13 @@ class EntityManager
 
         $model_table = call_user_func($model . '::getTableName');
 
-        if (property_exists($this, $primary_key) || ($this->is_primary_key_composite && in_array($primary_key,
+        if (isset($this->$primary_key) || ($this->is_primary_key_composite && in_array($primary_key,
                     $this->primary_key))
         ) {
-            $this->$model_table = call_user_func_array($model . '::_concatenateRelation',
+            $this->_columns[$model_table] = call_user_func_array($model . '::_concatenateRelation',
                 array(array($primary_key => $this->_id), array($this->table), $this->db_talker->getConnection()));
         } else {
-            $this->$model_table = call_user_func_array($model . '::_concatenateRelation', array(
+            $this->_columns[$model_table] = call_user_func_array($model . '::_concatenateRelation', array(
                 array($primary_key => $this->_id),
                 array($model_table . '_to_' . $this->table),
                 $this->db_talker->getConnection()
