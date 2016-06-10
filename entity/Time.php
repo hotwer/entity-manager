@@ -1,5 +1,5 @@
 <?php
-class Time extends EntityManager
+class Time extends WarlocKer
 {
-    
+
 }

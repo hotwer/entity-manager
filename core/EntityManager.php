@@ -1,6 +1,6 @@
 <?php
 
-class EntityManager
+class WarlocKer
 {
     const DB_DATE_FORMAT = 'Y-m-d';
     const DATE_FORMAT = 'd/m/Y';

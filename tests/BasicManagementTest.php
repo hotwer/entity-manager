@@ -179,8 +179,8 @@ class BasicManagementTest extends SetupTests
     {
         $time = new Time(array('connection' => $this->connection));
 
-        $this->assertEquals(date('d/m/Y'), $time->my_date->format(EntityManager::DATE_FORMAT));
-        $this->assertEquals('01/01/1900', $time->my_date_default->format(EntityManager::DATE_FORMAT));
+        $this->assertEquals(date('d/m/Y'), $time->my_date->format(WarlocKer::DATE_FORMAT));
+        $this->assertEquals('01/01/1900', $time->my_date_default->format(WarlocKer::DATE_FORMAT));
         $this->assertEquals(date('d/m/Y H'), $time->my_datetime->format("d/m/Y H"));
         $this->assertEquals('01/01/1900 00', $time->my_datetime_default->format("d/m/Y H"));
         //$this->assertEquals(date('d/m/Y H'), $time->my_timestamp->format("d/m/Y H"));
@@ -191,9 +191,9 @@ class BasicManagementTest extends SetupTests
     {
         $time = Time::findById(1, $this->connection);
 
-        $this->assertEquals('09/09/2009 09:09:59', $time->my_timestamp->format(EntityManager::DATETIME_FORMAT));
-        $this->assertEquals('10/10/2010 03:03:03', $time->my_datetime->format(EntityManager::DATETIME_FORMAT));
-        $this->assertEquals('11/11/2011', $time->my_date->format(EntityManager::DATE_FORMAT));
+        $this->assertEquals('09/09/2009 09:09:59', $time->my_timestamp->format(WarlocKer::DATETIME_FORMAT));
+        $this->assertEquals('10/10/2010 03:03:03', $time->my_datetime->format(WarlocKer::DATETIME_FORMAT));
+        $this->assertEquals('11/11/2011', $time->my_date->format(WarlocKer::DATE_FORMAT));
     }
 
     public function testSaveObjectWithTimeFields()
@@ -201,8 +201,8 @@ class BasicManagementTest extends SetupTests
         $time = new Time(array('connection' => $this->connection));
 
         $time->my_date = new DateTime('tomorrow');
-        $date = $time->my_date->format(EntityManager::DB_DATE_FORMAT);
-        $datetime = $time->my_datetime->modify("-1 day")->format(EntityManager::DB_DATETIME_FORMAT);
+        $date = $time->my_date->format(WarlocKer::DB_DATE_FORMAT);
+        $datetime = $time->my_datetime->modify("-1 day")->format(WarlocKer::DB_DATETIME_FORMAT);
         $time->save();
 
         $time_row = $this->selectFromTime('WHERE time_id = 3');
