@@ -1,5 +1,5 @@
 <?php
-class Center extends EntityManager
+class Center extends WarlocKer
 {
     public function circle()
     {

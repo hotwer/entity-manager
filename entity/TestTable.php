@@ -1,12 +1,12 @@
 <?php
-class TestTable extends EntityManager 
+class TestTable extends WarlocKer 
 {
-    public function testTableRelations() 
+    public function testTableRelations()
     {
         return $this->hasMany('TestTableRelation');
     }
-    
-    public function testTableAnothers() 
+
+    public function testTableAnothers()
     {
         return $this->hasMany('TestTableAnother');
     }

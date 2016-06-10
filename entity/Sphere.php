@@ -1,5 +1,5 @@
 <?php
-class Sphere extends EntityManager
+class Sphere extends WarlocKer
 {
     public function circles()
     {

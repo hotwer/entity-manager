@@ -1,5 +1,5 @@
-<?php 
-class Square extends EntityManager 
+<?php
+class Square extends WarlocKer 
 {
     public function cube()
     {

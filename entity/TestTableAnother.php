@@ -1,7 +1,7 @@
 <?php
-class TestTableAnother extends EntityManager 
+class TestTableAnother extends WarlocKer 
 {
-    public function testTables() 
+    public function testTables()
     {
         return $this->belongsToMany('TestTable');
     }

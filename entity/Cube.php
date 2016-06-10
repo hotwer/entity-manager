@@ -1,5 +1,5 @@
-<?php 
-class Cube extends EntityManager 
+<?php
+class Cube extends WarlocKer 
 {
     public function squares()
     {

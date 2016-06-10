@@ -1,5 +1,5 @@
 <?php
-class Item extends EntityManager
+class Item extends WarlocKer
 {
     public function __debugInfo()
     {

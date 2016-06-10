@@ -124,7 +124,7 @@ For defining relationships, its easy too, it has four helping funcitions for it:
 This is a simple one to many relationship.
 
 
-    class MyEntity extends EntityManager
+    class MyEntity extends WarlocKer
     {
         public function entityRelationed()
         {
@@ -132,7 +132,7 @@ This is a simple one to many relationship.
         }
     }
 
-    class EntityRelationed extends EntityManager
+    class EntityRelationed extends WarlocKer
     {
         public function entity()
         {
@@ -162,7 +162,7 @@ Well, at first we expect a table with this convention name
 After the convention, defining it in the entity is a simple task
 
 
-    class HasManyTableName extends EntityManager
+    class HasManyTableName extends WarlocKer
     {
         public function belongsToManyTableNames()
         {
@@ -170,7 +170,7 @@ After the convention, defining it in the entity is a simple task
         }
     }
 
-    class BelongsToManyTableName extends EntityManager
+    class BelongsToManyTableName extends WarlocKer
     {
         public function hasManyTableNames()
         {
@@ -243,7 +243,7 @@ In certain cases, you need to go deep into querying to the database, but we do n
 Defining this way (method is protected)
 
 
-    class MyEntity extends EntityManager
+    class MyEntity extends WarlocKer
     {
         public function allOrderedBy($field)
         {

@@ -1,4 +1,4 @@
-## SCEWeb EntityManager ~ v0.6.1
+## WarlocKer (Past EntityManager) ~ v0.6.1
 
 Demands a definition of global constants (for **DatabaseTalker**):
     * `DB_HOSTNAME`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
@@ -27,13 +27,13 @@ Demands a definition of global constants (for **DatabaseTalker**):
     - Fixed problem where if the relation key where in the primary key (composite) the relation worked as if it had a pivot table.
 
 - v0.5.1
-    - Collection class now has unity tests for it's purpose (yes, everything is fine and dending now) 
+    - Collection class now has unity tests for it's purpose (yes, everything is fine and dending now)
     - Fixed some features with `sort` method
 
 - v0.5.0
     - Created new class to deal with database querying and added new documentation
     - New class to deal with database querying: DatabaseTalker!
-    - Database connection dependency is now ONLY on DatabaseTalker (can re-utilize connections as well) 
+    - Database connection dependency is now ONLY on DatabaseTalker (can re-utilize connections as well)
 
 - v0.3.6
     - Fixed some fields that still where possible to be referred as reserved words while querying
@@ -72,10 +72,10 @@ Demands a definition of global constants (for **DatabaseTalker**):
         - All property variables as scoped variables MUST be named using `underscore` convention
 
 - v0.0.26
-    - Documentation fix 
+    - Documentation fix
 
 - v0.0.25
-    - Added documentation for a starting guide. 
+    - Added documentation for a starting guide.
 
 - v0.0.2:
     - Customized table name (just define a table name on the protected attribute $table for the table name value)
